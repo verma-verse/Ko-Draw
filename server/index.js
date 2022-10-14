@@ -10,6 +10,7 @@ app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Credentials", true);
   next();
 });
+
 io.on("connection", (socket) => {
   console.log("user online");
   socket.on("canvas-data", (data) => {
