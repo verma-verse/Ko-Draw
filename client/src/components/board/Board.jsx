@@ -6,19 +6,19 @@ import io from "socket.io-client";
 export default function Board() {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
-  const socket = io.connect("http://localhost:8000");
+  // const socket = io.connect("http://localhost:8000");
   const [time, setTime] = useState(null);
 
   /*Receive the data and sync*/
-  socket.on("canvas-data", (data) => {
-    let image = new Image();
-    let canvas = canvasRef.current;
-    let ctx = canvas.getContext("2d");
-    image.onload = function () {
-      ctx.drawImage(image, 0, 0);
-    };
-    image.src = data;
-  });
+  // socket.on("canvas-data", (data) => {
+  //   let image = new Image();
+  //   let canvas = canvasRef.current;
+  //   let ctx = canvas.getContext("2d");
+  //   image.onload = function () {
+  //     ctx.drawImage(image, 0, 0);
+  //   };
+  //   image.src = data;
+  // });
 
   /*start drawing, once loaded */
   useEffect(() => {
@@ -80,19 +80,19 @@ export default function Board() {
       ctx.lineTo(mouse.x, mouse.y);
       ctx.closePath();
       ctx.stroke();
-      setTime(
-        setTimeout(function () {
-          let base64img = canvas.toDataURL("image/png");
-          socket.emit("canvas-data", base64img);
-          console.log("timeout");
-        }, 1000)
-      );
+      // setTime(
+      //   setTimeout(function () {
+      //     let base64img = canvas.toDataURL("image/png");
+      //     socket.emit("canvas-data", base64img);
+      //     console.log("timeout");
+      //   }, 1000)
+      // );
     };
   };
 
   return (
-    <div ref={sketchRef} className="w-full h-full">
-      <canvas ref={canvasRef} className="w-full h-full"></canvas>
+    <div ref={sketchRef} className="">
+      <canvas ref={canvasRef} className=""></canvas>
     </div>
   );
 }

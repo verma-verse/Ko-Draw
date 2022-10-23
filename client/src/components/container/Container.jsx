@@ -1,11 +1,12 @@
 import Board from "../board/Board";
+import Toolbar from "../toolbar/Toolbar";
 export default function Container() {
   return (
-    <div className="fixed w-full h-full bg-black">
-      <div className="text-center">
-        <input type="color" />
+    <div className="fixed flex w-screen h-screen bg-black">
+      <div className="z-20 h-auto mx-1 my-2 bg-white rounded-md w-fit">
+        <Toolbar />
       </div>
-      <div className="w-11/12 m-auto mt-4 bg-white h-11/12">
+      <div className="z-20 w-full h-auto mx-1 my-2 bg-white rounded-md">
         <Board />
       </div>
     </div>
