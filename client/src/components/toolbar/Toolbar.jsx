@@ -8,8 +8,6 @@ import { FaPaintBrush } from "react-icons/fa";
 import { useState } from "react";
 import Tool from "./Tool";
 export default function Toolbar({ properties, setProperties }) {
-  const iconsClassName = "border border-black rounded-sm p-1 text-lg mb-1 mr-1";
-  const activeTool = "bg-gray-400";
   return (
     <div className="flex flex-col px-1 py-2 max-w-fit">
       <div className="flex">
@@ -88,21 +86,25 @@ export default function Toolbar({ properties, setProperties }) {
           }}
         />
       </div>
-      <div className="flex">
-        <span className="p-1 mb-1 text-md" title="Size">
-          <FaPaintBrush />
-        </span>
-        {properties.currentTool !== "pencil" && (
+      {properties.currentTool !== "pencil" && (
+        <div className="flex">
+          <span className="p-1 mb-1 text-md" title="Size">
+            <FaPaintBrush />
+          </span>
           <input
+            min={1}
+            max={99}
             className="w-10 text-center text-white rounded-sm bg-slate-600"
             type="number"
             value={properties.size}
             onChange={(e) => {
+              if (e.target.value < 1) e.target.value = 1;
+              else if (e.target.value > 99) e.target.value = 99;
               setProperties({ ...properties, size: e.target.value });
             }}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
