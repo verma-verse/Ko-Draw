@@ -1,4 +1,11 @@
 import { useRef, useState, useEffect } from "react";
+import {
+  drawCircle,
+  drawOval,
+  drawRect,
+  drawStar,
+  drawText,
+} from "./DrawingSapes";
 
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
@@ -57,7 +64,13 @@ export default function Board({ properties, setProperties }) {
 
     function mouseUp(e) {
       first = true;
-      if (properties.currentTool !== "line")
+      if (
+        properties.currentTool !== "line" &&
+        properties.currentTool !== "rectangle" &&
+        properties.currentTool !== "star" &&
+        properties.currentTool !== "circle" &&
+        properties.currentTool !== "oval"
+      )
         setDrawing([...drawing, ...mouse_points]);
       else {
         setDrawing([
@@ -68,8 +81,8 @@ export default function Board({ properties, setProperties }) {
             size: 1,
             x0: 0,
             y0: 0,
-            x1: 1,
-            y1: 1,
+            x1: 0,
+            y1: 0,
           },
         ]);
         setProperties({ ...properties, currentTool: "pencil" });
@@ -82,30 +95,7 @@ export default function Board({ properties, setProperties }) {
     node.addEventListener("mouseup", MouseUp, false);
 
     /*Main paint function*/
-    var onPaint = function () {
-      console.log(first);
-      ctx.beginPath();
-      ctx.moveTo(last_mouse.x, last_mouse.y);
-      ctx.lineTo(mouse.x, mouse.y);
-      // ctx.closePath();
-      ctx.stroke();
-      if (!first && properties.currentTool === "line") {
-        let prev = drawing;
-        const popped = prev.pop();
-        const temp = {
-          title: properties.currentTool,
-          color: ctx.strokeStyle,
-          size: ctx.lineWidth,
-          x0: mouse_starting.x,
-          y0: mouse_starting.y,
-          x1: mouse.x,
-          y1: mouse.y,
-        };
-        prev.push(temp);
-        setDrawing(prev);
-        redraw(ctx);
-      }
-      if (properties.currentTool === "line" && first) first = false;
+    let onPaint = function () {
       mouse_points = [
         ...mouse_points,
         {
@@ -118,6 +108,113 @@ export default function Board({ properties, setProperties }) {
           y1: mouse.y,
         },
       ];
+      if (properties.currentTool === "rectangle") {
+        let prev = drawing;
+        if (!first) {
+          prev.pop();
+        } else first = false;
+        const temp = {
+          title: "rectangle",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          start_x: mouse_starting.x,
+          start_y: mouse_starting.y,
+          end_x: mouse.x,
+          end_y: mouse.y,
+        };
+        prev.push(temp);
+        setDrawing(prev);
+        redraw(ctx);
+        return;
+      } else if (properties.currentTool === "star") {
+        const cx = (mouse_starting.x + mouse.x) / 2.0;
+        const cy = (mouse_starting.y + mouse.y) / 2.0;
+        let prev = drawing;
+        if (!first) {
+          prev.pop();
+        } else first = false;
+        const temp = {
+          title: "star",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          cx: cx,
+          cy: cy,
+          spikes: 5,
+          outerRadius: mouse.x - mouse_starting.x,
+          innerRadius: (mouse.x - mouse_starting.x) / 2.0,
+        };
+        prev.push(temp);
+        setDrawing(prev);
+        redraw(ctx);
+        return;
+      } else if (properties.currentTool === "line") {
+        let prev = drawing;
+        if (!first) {
+          prev.pop();
+        } else first = false;
+        const temp = {
+          title: "line",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          x0: mouse_starting.x,
+          y0: mouse_starting.y,
+          x1: mouse.x,
+          y1: mouse.y,
+        };
+        prev.push(temp);
+        setDrawing(prev);
+        redraw(ctx);
+        return;
+      } else if (properties.currentTool === "circle") {
+        let prev = drawing;
+        if (!first) {
+          prev.pop();
+        } else first = false;
+        const temp = {
+          title: "circle",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          mouse_starting,
+          mouse,
+        };
+        prev.push(temp);
+        setDrawing(prev);
+        redraw(ctx);
+        return;
+      } else if (properties.currentTool === "oval") {
+        let prev = drawing;
+        if (!first) prev.pop();
+        else first = false;
+        const temp = {
+          title: "oval",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          mouse_starting,
+          mouse,
+        };
+        prev.push(temp);
+        setDrawing(prev);
+        redraw(ctx);
+        return;
+        // } else if (properties.currentTool === "text") {
+        //   let ans = window.prompt("Enter the text");
+        //   let prev = drawing;
+        //   const temp = {
+        //     title: "text",
+        //     color: ctx.strokeStyle,
+        //     size: ctx.lineWidth,
+        //     text: ans,
+        //   };
+        //   prev.push(temp);
+        //   setDrawing(prev);
+        //   redraw(ctx);
+        //   return;
+      }
+      ctx.beginPath();
+      ctx.moveTo(last_mouse.x, last_mouse.y);
+      ctx.lineTo(mouse.x, mouse.y);
+      // ctx.closePath();
+      ctx.stroke();
     };
 
     /*Cleanup function*/
@@ -135,10 +232,22 @@ export default function Board({ properties, setProperties }) {
     drawing.forEach((shape, idx) => {
       ctx.strokeStyle = shape.color;
       ctx.lineWidth = shape.size;
-      ctx.beginPath();
-      ctx.moveTo(shape.x0, shape.y0);
-      ctx.lineTo(shape.x1, shape.y1);
-      ctx.stroke();
+      if (shape.title === "rectangle") {
+        drawRect(ctx, shape);
+      } else if (shape.title === "star") {
+        drawStar(ctx, shape);
+      } else if (shape.title === "circle") {
+        drawCircle(ctx, shape);
+      } else if (shape.title === "oval") {
+        drawOval(ctx, shape);
+      } else if (shape.title === "text") {
+        drawText(ctx, shape);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(shape.x0, shape.y0);
+        ctx.lineTo(shape.x1, shape.y1);
+        ctx.stroke();
+      }
     });
   }
 
