@@ -5,6 +5,7 @@ export default function Container() {
   const [properties, setProperties] = useState({
     currentTool: "pencil",
     color: "#000000",
+    bgcolor: "#FFFFFF",
     size: 5,
   });
   return (

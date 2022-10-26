@@ -5,7 +5,9 @@ import { TfiText } from "react-icons/tfi";
 import { AiOutlineLine, AiOutlineStar } from "react-icons/ai";
 import { TbRectangle, TbOvalVertical } from "react-icons/tb";
 import { FaPaintBrush } from "react-icons/fa";
+import { SiPlatformdotsh } from "react-icons/si";
 import { useState } from "react";
+
 import Tool from "./Tool";
 export default function Toolbar({ properties, setProperties }) {
   return (
@@ -60,6 +62,7 @@ export default function Toolbar({ properties, setProperties }) {
           <Tool
             properties={properties}
             setProperties={setProperties}
+            Size
             title="rectangle"
             component={<TbRectangle />}
           />
@@ -77,19 +80,31 @@ export default function Toolbar({ properties, setProperties }) {
           />
         </div>
       </div>
-      <div>
-        <input
-          type="color"
-          value={properties.color}
-          onChange={(e) => {
-            setProperties({ ...properties, color: e.target.value });
-          }}
-        />
-      </div>
+      {properties.currentTool === "eraser" ? (
+        <div>
+          <input
+            type="color"
+            value={properties.bgcolor}
+            onChange={(e) => {
+              setProperties({ ...properties, bgcolor: e.target.value });
+            }}
+          />
+        </div>
+      ) : (
+        <div>
+          <input
+            type="color"
+            value={properties.color}
+            onChange={(e) => {
+              setProperties({ ...properties, color: e.target.value });
+            }}
+          />
+        </div>
+      )}
       {properties.currentTool !== "pencil" && (
-        <div className="flex">
-          <span className="p-1 mb-1 text-md" title="Size">
-            <FaPaintBrush />
+        <div className="flex" title="Size">
+          <span className="p-1 mb-1 text-md">
+            <SiPlatformdotsh />
           </span>
           <input
             min={1}
