@@ -12,12 +12,11 @@ app.use(function (req, res, next) {
 });
 
 io.on("connection", (socket) => {
-  console.log("user online");
   socket.on("canvas-data", (data) => {
-    console.log("data received");
     socket.broadcast.emit("canvas-data", data);
   });
 });
+
 app.get("/", (req, res) => res.send("Hello"));
 const PORT = process.env.PORT || 8000;
 http.listen(PORT, () => {
