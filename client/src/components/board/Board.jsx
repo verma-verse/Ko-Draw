@@ -1,16 +1,62 @@
 import { useRef, useState, useEffect } from "react";
+import io from "socket.io-client";
 import {
   drawCircle,
+  drawLine,
   drawOval,
   drawRect,
   drawStar,
   drawText,
-} from "./DrawingSapes";
+} from "./DrawingShapes";
 
+let renderc = 0;
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
+  const [receiving, setReceiving] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [sending, setSending] = useState(null);
+  const [firstStroke, setFirstStroke] = useState(true);
+
+  renderc++;
+  console.log(renderc);
+  /*Redraw function*/
+  const redraw = (ctx) => {
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    if (drawing.length > 0) {
+      let image = new Image();
+      image.src = drawing[drawing.length - 1];
+      image.onload = function () {
+        ctx.drawImage(image, 0, 0);
+      };
+    }
+  };
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    redraw(ctx);
+  }, [drawing]);
+
+  /*Connect to socket and receive*/
+  useEffect(() => {
+    const temp = io.connect("http://localhost:8000");
+    temp.on("connect", () => {
+      temp.on("canvas-data", function (data) {
+        // if (data.id === socket.id) {
+        //   console.log("self");
+        //   return;
+        // }
+        let interval = setInterval(function () {
+          if (receiving) return;
+          setReceiving(true);
+          clearInterval(interval);
+          setReceiving(false);
+          setDrawing([...drawing, data.img]);
+        }, 100);
+      });
+      setSocket(temp);
+    });
+  }, []);
 
   useEffect(() => {
     let node = canvasRef.current;
@@ -40,7 +86,6 @@ export default function Board({ properties, setProperties }) {
     let last_mouse = { x: 0, y: 0 };
     let mouse_starting = { x: 0, y: 0 };
     let mouse_points = [];
-    let first = true;
     function mouseMove(e) {
       last_mouse.x = mouse.x;
       last_mouse.y = mouse.y;
@@ -63,30 +108,9 @@ export default function Board({ properties, setProperties }) {
     node.addEventListener("mousedown", MouseDown, false);
 
     function mouseUp(e) {
-      first = true;
-      if (
-        properties.currentTool !== "line" &&
-        properties.currentTool !== "rectangle" &&
-        properties.currentTool !== "star" &&
-        properties.currentTool !== "circle" &&
-        properties.currentTool !== "oval"
-      )
-        setDrawing([...drawing, ...mouse_points]);
-      else {
-        setDrawing([
-          ...drawing,
-          {
-            title: "pencil",
-            color: ctx.strokeStyle,
-            size: 1,
-            x0: 0,
-            y0: 0,
-            x1: 0,
-            y1: 0,
-          },
-        ]);
-        setProperties({ ...properties, currentTool: "pencil" });
-      }
+      setFirstStroke(true);
+      let base64ImageData = canvasRef.current.toDataURL("image/png");
+      socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
     }
     const MouseUp = function (event) {
@@ -96,6 +120,29 @@ export default function Board({ properties, setProperties }) {
 
     /*Main paint function*/
     let onPaint = function () {
+      // if (
+      //   ["rectangle", "circle", "line", "star", "oval"].includes(
+      //     properties.currentTool
+      //   )
+      // ) {
+      //   if (sending) {
+      //     clearTimeout(sending);
+      //     setSending(null);
+      //   }
+      // } else {
+      //   if (sending) clearTimeout(sending);
+      //   setSending(
+      //     setTimeout(() => {
+      //       if (!socket) {
+      //         console.log("not connected to server");
+      //         return;
+      //       }
+      //       let base64ImageData = canvasRef.current.toDataURL("image/png");
+      //       socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
+      //       setDrawing([...drawing, base64ImageData]);
+      //     }, 2000)
+      //   );
+      // }
       mouse_points = [
         ...mouse_points,
         {
@@ -109,10 +156,6 @@ export default function Board({ properties, setProperties }) {
         },
       ];
       if (properties.currentTool === "rectangle") {
-        let prev = drawing;
-        if (!first) {
-          prev.pop();
-        } else first = false;
         const temp = {
           title: "rectangle",
           color: ctx.strokeStyle,
@@ -122,17 +165,11 @@ export default function Board({ properties, setProperties }) {
           end_x: mouse.x,
           end_y: mouse.y,
         };
-        prev.push(temp);
-        setDrawing(prev);
         redraw(ctx);
-        return;
+        drawRect(ctx, temp);
       } else if (properties.currentTool === "star") {
         const cx = (mouse_starting.x + mouse.x) / 2.0;
         const cy = (mouse_starting.y + mouse.y) / 2.0;
-        let prev = drawing;
-        if (!first) {
-          prev.pop();
-        } else first = false;
         const temp = {
           title: "star",
           color: ctx.strokeStyle,
@@ -143,15 +180,9 @@ export default function Board({ properties, setProperties }) {
           outerRadius: mouse.x - mouse_starting.x,
           innerRadius: (mouse.x - mouse_starting.x) / 2.0,
         };
-        prev.push(temp);
-        setDrawing(prev);
         redraw(ctx);
-        return;
+        drawStar(ctx, temp);
       } else if (properties.currentTool === "line") {
-        let prev = drawing;
-        if (!first) {
-          prev.pop();
-        } else first = false;
         const temp = {
           title: "line",
           color: ctx.strokeStyle,
@@ -161,15 +192,9 @@ export default function Board({ properties, setProperties }) {
           x1: mouse.x,
           y1: mouse.y,
         };
-        prev.push(temp);
-        setDrawing(prev);
         redraw(ctx);
-        return;
+        drawLine(ctx, temp);
       } else if (properties.currentTool === "circle") {
-        let prev = drawing;
-        if (!first) {
-          prev.pop();
-        } else first = false;
         const temp = {
           title: "circle",
           color: ctx.strokeStyle,
@@ -177,14 +202,9 @@ export default function Board({ properties, setProperties }) {
           mouse_starting,
           mouse,
         };
-        prev.push(temp);
-        setDrawing(prev);
         redraw(ctx);
-        return;
+        drawCircle(ctx, temp);
       } else if (properties.currentTool === "oval") {
-        let prev = drawing;
-        if (!first) prev.pop();
-        else first = false;
         const temp = {
           title: "oval",
           color: ctx.strokeStyle,
@@ -192,29 +212,15 @@ export default function Board({ properties, setProperties }) {
           mouse_starting,
           mouse,
         };
-        prev.push(temp);
-        setDrawing(prev);
         redraw(ctx);
-        return;
-        // } else if (properties.currentTool === "text") {
-        //   let ans = window.prompt("Enter the text");
-        //   let prev = drawing;
-        //   const temp = {
-        //     title: "text",
-        //     color: ctx.strokeStyle,
-        //     size: ctx.lineWidth,
-        //     text: ans,
-        //   };
-        //   prev.push(temp);
-        //   setDrawing(prev);
-        //   redraw(ctx);
-        //   return;
+        drawOval(ctx, temp);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(last_mouse.x, last_mouse.y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.closePath();
+        ctx.stroke();
       }
-      ctx.beginPath();
-      ctx.moveTo(last_mouse.x, last_mouse.y);
-      ctx.lineTo(mouse.x, mouse.y);
-      // ctx.closePath();
-      ctx.stroke();
     };
 
     /*Cleanup function*/
@@ -222,34 +228,12 @@ export default function Board({ properties, setProperties }) {
       node.removeEventListener("mousemove", MouseMove, false);
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
+      // if (sending) {
+      //   clearTimeout(sending);
+      //   setSending(null);
+      // }
     };
-  }, [properties]);
-
-  function redraw(ctx) {
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    drawing.forEach((shape, idx) => {
-      ctx.strokeStyle = shape.color;
-      ctx.lineWidth = shape.size;
-      if (shape.title === "rectangle") {
-        drawRect(ctx, shape);
-      } else if (shape.title === "star") {
-        drawStar(ctx, shape);
-      } else if (shape.title === "circle") {
-        drawCircle(ctx, shape);
-      } else if (shape.title === "oval") {
-        drawOval(ctx, shape);
-      } else if (shape.title === "text") {
-        drawText(ctx, shape);
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(shape.x0, shape.y0);
-        ctx.lineTo(shape.x1, shape.y1);
-        ctx.stroke();
-      }
-    });
-  }
+  }, [properties, socket]);
 
   return (
     <div className="w-full h-full" ref={sketchRef}>

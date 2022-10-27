@@ -1,3 +1,14 @@
+export function drawLine(ctx, shape) {
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = shape.size;
+  ctx.beginPath();
+  ctx.moveTo(shape.x0, shape.y0);
+  ctx.lineTo(shape.x1, shape.y1);
+  ctx.stroke();
+}
+
 export function drawStar(ctx, starProps) {
   let rot = (Math.PI / 2) * 3;
   let x = starProps.cx;
@@ -84,5 +95,36 @@ export function drawOval(ctx, shape) {
 }
 
 export function drawText(ctx, shape) {
-  ctx.strokeText(shape.text, 10, 10);
+  console.log(shape);
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = shape.size;
+  ctx.font = shape.font;
+  ctx.strokeText(shape.text, shape.x, shape.y);
+}
+
+export function handleImage(ctx) {
+  let input = document.createElement("input");
+  input.type = "file";
+
+  input.onchange = (e) => {
+    // getting a hold of the file reference
+    let file = e.target.files[0];
+
+    // setting up the reader
+    let reader = new FileReader();
+    reader.readAsText(file, "UTF-8");
+
+    // here we tell the reader what to do when it's done reading...
+    reader.onload = (readerEvent) => {
+      let content = readerEvent.target.result; // this is the content!
+      let img = document.createElement("img");
+      img.src = content;
+      img.width = "270px";
+      img.height = "300px";
+      console.log(img);
+      ctx.drawImage(img, 20, 20);
+    };
+  };
+
+  input.click();
 }

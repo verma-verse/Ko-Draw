@@ -6,6 +6,7 @@ import { AiOutlineLine, AiOutlineStar } from "react-icons/ai";
 import { TbRectangle, TbOvalVertical } from "react-icons/tb";
 import { FaPaintBrush } from "react-icons/fa";
 import { SiPlatformdotsh } from "react-icons/si";
+import { GrGallery } from "react-icons/gr";
 import { useState } from "react";
 
 import Tool from "./Tool";
@@ -19,6 +20,12 @@ export default function Toolbar({ properties, setProperties }) {
             setProperties={setProperties}
             title="pencil"
             component={<BsPencil />}
+          />
+          <Tool
+            properties={properties}
+            setProperties={setProperties}
+            title="brush"
+            component={<FaPaintBrush />}
           />
           <Tool
             properties={properties}
@@ -42,8 +49,8 @@ export default function Toolbar({ properties, setProperties }) {
           <Tool
             properties={properties}
             setProperties={setProperties}
-            title="brush"
-            component={<FaPaintBrush />}
+            title="image"
+            component={<GrGallery />}
           />
         </div>
         <div className="flex flex-col">
