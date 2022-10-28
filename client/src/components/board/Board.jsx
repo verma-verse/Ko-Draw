@@ -1,12 +1,14 @@
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
 import {
+  downloadImage,
   drawCircle,
   drawLine,
   drawOval,
   drawRect,
   drawStar,
   drawText,
+  loadImage,
 } from "./DrawingShapes";
 
 let renderc = 0;
@@ -24,6 +26,8 @@ export default function Board({ properties, setProperties }) {
   /*Redraw function*/
   const redraw = (ctx) => {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    // ctx.fillStyle = "white";
+    // ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     if (drawing.length > 0) {
       let image = new Image();
       image.src = drawing[drawing.length - 1];
@@ -79,6 +83,10 @@ export default function Board({ properties, setProperties }) {
       ctx.lineWidth = 1;
       ctx.lineCap = "butt";
       ctx.lineJoin = "miter";
+    } else if (properties.currentTool === "image") {
+      loadImage(canvasRef.current, socket);
+      setProperties({ ...properties, currentTool: "pencil" });
+      return;
     }
 
     /*Mouse Capturing with Event listeners*/
@@ -112,6 +120,13 @@ export default function Board({ properties, setProperties }) {
       let base64ImageData = canvasRef.current.toDataURL("image/png");
       socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
+      if (
+        ["rectangle", "circle", "line", "star", "oval"].includes(
+          properties.currentTool
+        )
+      ) {
+        setProperties({ ...properties, currentTool: "pencil" });
+      }
     }
     const MouseUp = function (event) {
       return mouseUp(event);
@@ -237,6 +252,7 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
+      {/* <button onClick={() => downloadImage(canvasRef.current)}>Download</button> */}
       <canvas ref={canvasRef} className=""></canvas>
     </div>
   );
