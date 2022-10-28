@@ -33,13 +33,12 @@ export function drawStar(ctx, starProps) {
   ctx.lineTo(starProps.cx, starProps.cy - starProps.outerRadius);
   ctx.closePath();
   ctx.stroke();
-  // ctx.fillStyle = "skyblue";
-  // ctx.fill();
 }
 
 export function drawRect(ctx, shape) {
   ctx.lineWidth = shape.size;
   ctx.strokeStyle = shape.color;
+  ctx.beginPath();
   ctx.rect(
     shape.start_x,
     shape.start_y,
@@ -50,6 +49,8 @@ export function drawRect(ctx, shape) {
 }
 
 export function drawCircle(ctx, shape) {
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = shape.size;
   const center_x = (shape.mouse_starting.x + shape.mouse.x) / 2.0;
   const center_y = (shape.mouse_starting.y + shape.mouse.y) / 2.0;
   const radius =
@@ -63,6 +64,8 @@ export function drawCircle(ctx, shape) {
 }
 
 export function drawOval(ctx, shape) {
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = shape.size;
   let x1 = shape.mouse_starting.x;
   let x2 = shape.mouse.x;
   let y1 = shape.mouse_starting.y;
@@ -102,29 +105,39 @@ export function drawText(ctx, shape) {
   ctx.strokeText(shape.text, shape.x, shape.y);
 }
 
-export function handleImage(ctx) {
+export function loadImage(canvas, socket) {
   let input = document.createElement("input");
   input.type = "file";
-
-  input.onchange = (e) => {
-    // getting a hold of the file reference
-    let file = e.target.files[0];
-
-    // setting up the reader
-    let reader = new FileReader();
-    reader.readAsText(file, "UTF-8");
-
-    // here we tell the reader what to do when it's done reading...
-    reader.onload = (readerEvent) => {
-      let content = readerEvent.target.result; // this is the content!
-      let img = document.createElement("img");
-      img.src = content;
-      img.width = "270px";
-      img.height = "300px";
-      console.log(img);
-      ctx.drawImage(img, 20, 20);
+  input.addEventListener("change", function (e) {
+    let URL = window.URL;
+    let url = URL.createObjectURL(e.target.files[0]);
+    const img = new Image();
+    img.src = url;
+    img.onload = function () {
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(
+        img,
+        window.innerWidth - canvas.width,
+        window.innerHeight - canvas.height,
+        500,
+        300
+      );
+      socket.emit("canvas-data", {
+        img: canvas.toDataURL("image/png"),
+        id: socket.id,
+      });
     };
-  };
-
+  });
   input.click();
+}
+
+export function downloadImage(canvas) {
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const link = document.createElement("a");
+  link.download = "download.png";
+  link.href = canvas.toDataURL();
+  link.click();
+  link.delete();
 }
