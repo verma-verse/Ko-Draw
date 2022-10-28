@@ -87,6 +87,10 @@ export default function Board({ properties, setProperties }) {
       loadImage(canvasRef.current, socket);
       setProperties({ ...properties, currentTool: "pencil" });
       return;
+    } else if (properties.currentTool === "download") {
+      downloadImage(canvasRef.current);
+      setProperties({ ...properties, currentTool: "pencil" });
+      return;
     }
 
     /*Mouse Capturing with Event listeners*/

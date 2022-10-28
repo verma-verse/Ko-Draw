@@ -139,5 +139,5 @@ export function downloadImage(canvas) {
   link.download = "download.png";
   link.href = canvas.toDataURL();
   link.click();
-  link.delete();
+  // link.delete();
 }

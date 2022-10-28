@@ -1,4 +1,4 @@
-import { BsPencil, BsCircle } from "react-icons/bs";
+import { BsPencil, BsCircle, BsDownload } from "react-icons/bs";
 import { BiEraser } from "react-icons/bi";
 import { GiPaintBucket } from "react-icons/gi";
 import { TfiText } from "react-icons/tfi";
@@ -84,6 +84,12 @@ export default function Toolbar({ properties, setProperties }) {
             setProperties={setProperties}
             title="circle"
             component={<BsCircle />}
+          />
+          <Tool
+            properties={properties}
+            setProperties={setProperties}
+            title="download"
+            component={<BsDownload />}
           />
         </div>
       </div>
