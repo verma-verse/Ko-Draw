@@ -1,40 +1,70 @@
-import { useRef } from "react";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
+import io from "socket.io-client";
+import {
+  drawCircle,
+  drawLine,
+  drawOval,
+  drawRect,
+  drawStar,
+  drawText,
+} from "./DrawingShapes";
 
+let renderc = 0;
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
-  // const [stack, setStack] = useState([]);
+  const [receiving, setReceiving] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [sending, setSending] = useState(null);
+  const [firstStroke, setFirstStroke] = useState(true);
+
+  renderc++;
+  console.log(renderc);
+  /*Redraw function*/
+  const redraw = (ctx) => {
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    if (drawing.length > 0) {
+      let image = new Image();
+      image.src = drawing[drawing.length - 1];
+      image.onload = function () {
+        ctx.drawImage(image, 0, 0);
+      };
+    }
+  };
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    redraw(ctx);
+  }, [drawing]);
+
+  /*Connect to socket and receive*/
+  useEffect(() => {
+    const temp = io.connect("http://localhost:8000");
+    temp.on("connect", () => {
+      temp.on("canvas-data", function (data) {
+        // if (data.id === socket.id) {
+        //   console.log("self");
+        //   return;
+        // }
+        let interval = setInterval(function () {
+          if (receiving) return;
+          setReceiving(true);
+          clearInterval(interval);
+          setReceiving(false);
+          setDrawing([...drawing, data.img]);
+        }, 100);
+      });
+      setSocket(temp);
+    });
+  }, []);
 
   useEffect(() => {
-    drawOnCanvas();
-  }, [properties]);
-
-  function redraw(ctx) {
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    drawing.forEach((shape, idx) => {
-      ctx.strokeStyle = shape.color;
-      ctx.lineWidth = shape.size;
-      ctx.beginPath();
-      ctx.moveTo(shape.x0, shape.y0);
-      ctx.lineTo(shape.x1, shape.y1);
-      ctx.closePath();
-      ctx.stroke();
-    });
-  }
-
-  function drawOnCanvas() {
-    let ctx = canvasRef.current.getContext("2d");
+    let node = canvasRef.current;
+    let ctx = node.getContext("2d");
     let sketch = sketchRef.current;
     let sketch_style = getComputedStyle(sketch);
-    canvasRef.current.width = parseInt(sketch_style.getPropertyValue("width"));
-    canvasRef.current.height = parseInt(
-      sketch_style.getPropertyValue("height")
-    );
+    node.width = parseInt(sketch_style.getPropertyValue("width"));
+    node.height = parseInt(sketch_style.getPropertyValue("height"));
     redraw(ctx);
     ctx.strokeStyle = properties.color;
     ctx.lineWidth = properties.size;
@@ -50,49 +80,69 @@ export default function Board({ properties, setProperties }) {
       ctx.lineCap = "butt";
       ctx.lineJoin = "miter";
     }
+
+    /*Mouse Capturing with Event listeners*/
     let mouse = { x: 0, y: 0 };
     let last_mouse = { x: 0, y: 0 };
     let mouse_starting = { x: 0, y: 0 };
     let mouse_points = [];
+    function mouseMove(e) {
+      last_mouse.x = mouse.x;
+      last_mouse.y = mouse.y;
+      mouse.x = e.pageX - node.offsetLeft;
+      mouse.y = e.pageY - node.offsetTop;
+    }
+    const MouseMove = function (event) {
+      return mouseMove(event);
+    };
+    node.addEventListener("mousemove", MouseMove, false);
 
-    canvasRef.current.addEventListener(
-      "mousemove",
-      function (e) {
-        last_mouse.x = mouse.x;
-        last_mouse.y = mouse.y;
-        mouse.x = e.pageX - this.offsetLeft;
-        mouse.y = e.pageY - this.offsetTop;
-      },
-      false
-    );
+    function mouseDown(e) {
+      mouse_starting.x = e.pageX - node.offsetLeft;
+      mouse_starting.y = e.pageY - node.offsetTop;
+      node.addEventListener("mousemove", onPaint, false);
+    }
+    const MouseDown = function (event) {
+      return mouseDown(event);
+    };
+    node.addEventListener("mousedown", MouseDown, false);
 
-    /* Drawing on Paint App */
-    canvasRef.current.addEventListener(
-      "mousedown",
-      function (e) {
-        mouse_starting.x = e.pageX - this.offsetLeft;
-        mouse_starting.y = e.pageY - this.offsetTop;
-        canvasRef.current.addEventListener("mousemove", onPaint, false);
-      },
-      false
-    );
+    function mouseUp(e) {
+      setFirstStroke(true);
+      let base64ImageData = canvasRef.current.toDataURL("image/png");
+      socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
+      node.removeEventListener("mousemove", onPaint, false);
+    }
+    const MouseUp = function (event) {
+      return mouseUp(event);
+    };
+    node.addEventListener("mouseup", MouseUp, false);
 
-    canvasRef.current.addEventListener(
-      "mouseup",
-      function () {
-        setDrawing([...drawing, ...mouse_points]);
-        canvasRef.current.removeEventListener("mousemove", onPaint, false);
-        // setStack([...mouse_points, ...stack]);
-      },
-      false
-    );
-
-    var onPaint = function () {
-      ctx.beginPath();
-      ctx.moveTo(last_mouse.x, last_mouse.y);
-      ctx.lineTo(mouse.x, mouse.y);
-      ctx.closePath();
-      ctx.stroke();
+    /*Main paint function*/
+    let onPaint = function () {
+      // if (
+      //   ["rectangle", "circle", "line", "star", "oval"].includes(
+      //     properties.currentTool
+      //   )
+      // ) {
+      //   if (sending) {
+      //     clearTimeout(sending);
+      //     setSending(null);
+      //   }
+      // } else {
+      //   if (sending) clearTimeout(sending);
+      //   setSending(
+      //     setTimeout(() => {
+      //       if (!socket) {
+      //         console.log("not connected to server");
+      //         return;
+      //       }
+      //       let base64ImageData = canvasRef.current.toDataURL("image/png");
+      //       socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
+      //       setDrawing([...drawing, base64ImageData]);
+      //     }, 2000)
+      //   );
+      // }
       mouse_points = [
         ...mouse_points,
         {
@@ -105,8 +155,85 @@ export default function Board({ properties, setProperties }) {
           y1: mouse.y,
         },
       ];
+      if (properties.currentTool === "rectangle") {
+        const temp = {
+          title: "rectangle",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          start_x: mouse_starting.x,
+          start_y: mouse_starting.y,
+          end_x: mouse.x,
+          end_y: mouse.y,
+        };
+        redraw(ctx);
+        drawRect(ctx, temp);
+      } else if (properties.currentTool === "star") {
+        const cx = (mouse_starting.x + mouse.x) / 2.0;
+        const cy = (mouse_starting.y + mouse.y) / 2.0;
+        const temp = {
+          title: "star",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          cx: cx,
+          cy: cy,
+          spikes: 5,
+          outerRadius: mouse.x - mouse_starting.x,
+          innerRadius: (mouse.x - mouse_starting.x) / 2.0,
+        };
+        redraw(ctx);
+        drawStar(ctx, temp);
+      } else if (properties.currentTool === "line") {
+        const temp = {
+          title: "line",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          x0: mouse_starting.x,
+          y0: mouse_starting.y,
+          x1: mouse.x,
+          y1: mouse.y,
+        };
+        redraw(ctx);
+        drawLine(ctx, temp);
+      } else if (properties.currentTool === "circle") {
+        const temp = {
+          title: "circle",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          mouse_starting,
+          mouse,
+        };
+        redraw(ctx);
+        drawCircle(ctx, temp);
+      } else if (properties.currentTool === "oval") {
+        const temp = {
+          title: "oval",
+          color: ctx.strokeStyle,
+          size: ctx.lineWidth,
+          mouse_starting,
+          mouse,
+        };
+        redraw(ctx);
+        drawOval(ctx, temp);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(last_mouse.x, last_mouse.y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.closePath();
+        ctx.stroke();
+      }
     };
-  }
+
+    /*Cleanup function*/
+    return () => {
+      node.removeEventListener("mousemove", MouseMove, false);
+      node.removeEventListener("mousedown", MouseDown, false);
+      node.removeEventListener("mouseup", MouseUp, false);
+      // if (sending) {
+      //   clearTimeout(sending);
+      //   setSending(null);
+      // }
+    };
+  }, [properties, socket]);
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
