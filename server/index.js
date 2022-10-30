@@ -1,7 +1,4 @@
 const app = require("express")();
-let http = require("http").createServer(app);
-let io = require("socket.io")(http, { cors: { origin: "*" } });
-
 app.use(function (req, res, next) {
   //CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -11,14 +8,8 @@ app.use(function (req, res, next) {
   next();
 });
 
-io.on("connection", (socket) => {
-  socket.on("canvas-data", (data) => {
-    socket.broadcast.emit("canvas-data", data);
-  });
-});
-
-app.get("/", (req, res) => res.send("Hello"));
+app.get("/", (req, res) => res.send("Server is running"));
 const PORT = process.env.PORT || 8000;
-http.listen(PORT, () => {
-  console.log("Started on : " + PORT);
+app.listen(PORT, () => {
+  console.log("Server started on " + PORT);
 });

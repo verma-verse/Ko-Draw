@@ -11,7 +11,6 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
-let renderc = 0;
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
@@ -21,8 +20,6 @@ export default function Board({ properties, setProperties }) {
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
 
-  renderc++;
-  console.log(renderc);
   /*Redraw function*/
   const redraw = (ctx) => {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -43,7 +40,7 @@ export default function Board({ properties, setProperties }) {
 
   /*Connect to socket and receive*/
   useEffect(() => {
-    const temp = io.connect("http://localhost:8000");
+    const temp = io.connect("http://localhost:8888");
     temp.on("connect", () => {
       temp.on("canvas-data", function (data) {
         // if (data.id === socket.id) {
@@ -122,6 +119,7 @@ export default function Board({ properties, setProperties }) {
     function mouseUp(e) {
       setFirstStroke(true);
       let base64ImageData = canvasRef.current.toDataURL("image/png");
+      // setDrawing([...drawing, base64ImageData]);
       socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
       if (
