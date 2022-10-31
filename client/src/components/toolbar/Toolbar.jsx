@@ -11,6 +11,8 @@ import { useState } from "react";
 
 import Tool from "./Tool";
 export default function Toolbar({ properties, setProperties }) {
+  const [color, setColor] = useState("#000000");
+  const [bgcolor, setBgcolor] = useState("#FFFFFF");
   return (
     <div className="flex flex-col px-1 py-2 max-w-fit">
       <div className="flex">
@@ -97,8 +99,11 @@ export default function Toolbar({ properties, setProperties }) {
         <div>
           <input
             type="color"
-            value={properties.bgcolor}
+            value={bgcolor}
             onChange={(e) => {
+              setBgcolor(e.target.value);
+            }}
+            onBlur={(e) => {
               setProperties({ ...properties, bgcolor: e.target.value });
             }}
           />
@@ -107,8 +112,11 @@ export default function Toolbar({ properties, setProperties }) {
         <div>
           <input
             type="color"
-            value={properties.color}
+            value={color}
             onChange={(e) => {
+              setColor(e.target.value);
+            }}
+            onBlur={(e) => {
               setProperties({ ...properties, color: e.target.value });
             }}
           />

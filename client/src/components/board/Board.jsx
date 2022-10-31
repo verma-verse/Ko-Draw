@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
+import { fillColor } from "./actions";
 import {
   downloadImage,
   drawCircle,
@@ -20,17 +21,34 @@ export default function Board({ properties, setProperties }) {
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
 
+  useEffect(() => {
+    //FIXME: handle dimensions (need to resize sketch too) when resizing...
+    const resizeHandler = (e) => {
+      // console.log("resized");
+      let sketch = sketchRef.current;
+      let sketch_style = getComputedStyle(sketch);
+      canvasRef.current.width = parseInt(
+        sketch_style.getPropertyValue("width")
+      );
+      canvasRef.current.height = parseInt(
+        sketch_style.getPropertyValue("height")
+      );
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      redraw(ctx);
+    };
+    window.addEventListener("resize", resizeHandler);
+    resizeHandler();
+    return () => {
+      window.removeEventListener("resize", resizeHandler);
+    };
+  }, []);
+
   /*Redraw function*/
   const redraw = (ctx) => {
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    // ctx.fillStyle = "white";
-    // ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     if (drawing.length > 0) {
-      let image = new Image();
-      image.src = drawing[drawing.length - 1];
-      image.onload = function () {
-        ctx.drawImage(image, 0, 0);
-      };
+      ctx.putImageData(drawing[drawing.length - 1], 0, 0);
     }
   };
   useEffect(() => {
@@ -39,7 +57,7 @@ export default function Board({ properties, setProperties }) {
   }, [drawing]);
 
   /*Connect to socket and receive*/
-  useEffect(() => {
+  /*  useEffect(() => {
     const temp = io.connect("http://localhost:8888");
     temp.on("connect", () => {
       temp.on("canvas-data", function (data) {
@@ -57,16 +75,10 @@ export default function Board({ properties, setProperties }) {
       });
       setSocket(temp);
     });
-  }, []);
-
-  useEffect(() => {
+  }, []) */ useEffect(() => {
     let node = canvasRef.current;
     let ctx = node.getContext("2d");
-    let sketch = sketchRef.current;
-    let sketch_style = getComputedStyle(sketch);
-    node.width = parseInt(sketch_style.getPropertyValue("width"));
-    node.height = parseInt(sketch_style.getPropertyValue("height"));
-    redraw(ctx);
+    // redraw(ctx);
     ctx.strokeStyle = properties.color;
     ctx.lineWidth = properties.size;
     ctx.lineJoin = "round";
@@ -88,8 +100,21 @@ export default function Board({ properties, setProperties }) {
       downloadImage(canvasRef.current);
       setProperties({ ...properties, currentTool: "pencil" });
       return;
+    } else if (properties.currentTool === "paintBucket") {
+      try {
+        canvasRef.current.removeEventListener("click", paintPixels);
+      } catch {
+        console.log("not added bro");
+      }
+      canvasRef.current.addEventListener("click", paintPixels);
     }
-
+    function paintPixels(e) {
+      const x = e.pageX - node.offsetLeft;
+      const y = e.pageY - node.offsetTop;
+      fillColor(node, x, y, properties.color);
+      const imgdata = ctx.getImageData(0, 0, node.width, node.height);
+      setDrawing([...drawing, imgdata]);
+    }
     /*Mouse Capturing with Event listeners*/
     let mouse = { x: 0, y: 0 };
     let last_mouse = { x: 0, y: 0 };
@@ -104,7 +129,6 @@ export default function Board({ properties, setProperties }) {
     const MouseMove = function (event) {
       return mouseMove(event);
     };
-    node.addEventListener("mousemove", MouseMove, false);
 
     function mouseDown(e) {
       mouse_starting.x = e.pageX - node.offsetLeft;
@@ -114,13 +138,12 @@ export default function Board({ properties, setProperties }) {
     const MouseDown = function (event) {
       return mouseDown(event);
     };
-    node.addEventListener("mousedown", MouseDown, false);
 
     function mouseUp(e) {
       setFirstStroke(true);
-      let base64ImageData = canvasRef.current.toDataURL("image/png");
-      // setDrawing([...drawing, base64ImageData]);
-      socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
+      const imgdata = ctx.getImageData(0, 0, node.width, node.height);
+      setDrawing([...drawing, imgdata]);
+      // socket.emit("canvas-data", { img: imgdata, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
       if (
         ["rectangle", "circle", "line", "star", "oval"].includes(
@@ -133,33 +156,14 @@ export default function Board({ properties, setProperties }) {
     const MouseUp = function (event) {
       return mouseUp(event);
     };
-    node.addEventListener("mouseup", MouseUp, false);
+    if (properties.currentTool !== "paintBucket") {
+      node.addEventListener("mousemove", MouseMove, false);
+      node.addEventListener("mousedown", MouseDown, false);
+      node.addEventListener("mouseup", MouseUp, false);
+    }
 
     /*Main paint function*/
     let onPaint = function () {
-      // if (
-      //   ["rectangle", "circle", "line", "star", "oval"].includes(
-      //     properties.currentTool
-      //   )
-      // ) {
-      //   if (sending) {
-      //     clearTimeout(sending);
-      //     setSending(null);
-      //   }
-      // } else {
-      //   if (sending) clearTimeout(sending);
-      //   setSending(
-      //     setTimeout(() => {
-      //       if (!socket) {
-      //         console.log("not connected to server");
-      //         return;
-      //       }
-      //       let base64ImageData = canvasRef.current.toDataURL("image/png");
-      //       socket.emit("canvas-data", { img: base64ImageData, id: socket.id });
-      //       setDrawing([...drawing, base64ImageData]);
-      //     }, 2000)
-      //   );
-      // }
       mouse_points = [
         ...mouse_points,
         {
@@ -242,6 +246,7 @@ export default function Board({ properties, setProperties }) {
 
     /*Cleanup function*/
     return () => {
+      node.removeEventListener("click", paintPixels);
       node.removeEventListener("mousemove", MouseMove, false);
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
