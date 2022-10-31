@@ -97,6 +97,9 @@ export default function Board({ properties, setProperties }) {
       setProperties({ ...properties, currentTool: "pencil" });
       return;
     } else if (properties.currentTool === "download") {
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      redraw(ctx)
       downloadImage(canvasRef.current);
       setProperties({ ...properties, currentTool: "pencil" });
       return;

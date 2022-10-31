@@ -133,8 +133,6 @@ export function loadImage(canvas, socket) {
 
 export function downloadImage(canvas) {
   const ctx = canvas.getContext("2d");
-  // ctx.fillStyle = "white";
-  // ctx.fillRect(0, 0, canvas.width, canvas.height);
   const link = document.createElement("a");
   link.download = "download.png";
   let dt = canvas.toDataURL("image/png");
