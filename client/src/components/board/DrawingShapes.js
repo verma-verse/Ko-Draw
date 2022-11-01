@@ -38,14 +38,12 @@ export function drawStar(ctx, starProps) {
 export function drawRect(ctx, shape) {
   ctx.lineWidth = shape.size;
   ctx.strokeStyle = shape.color;
-  ctx.beginPath();
-  ctx.rect(
+  ctx.strokeRect(
     shape.start_x,
     shape.start_y,
     shape.end_x - shape.start_x,
     shape.end_y - shape.start_y
   );
-  ctx.stroke();
 }
 
 export function drawCircle(ctx, shape) {
@@ -139,4 +137,16 @@ export function downloadImage(canvas) {
   link.href = dt.replace(/^data:image\/[^;]/, "data:application/octet-stream");
   link.click();
   // link.remove();
+}
+
+export function drawSelection(ctx, shape) {
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#000000";
+  ctx.setLineDash([7]);
+  ctx.strokeRect(
+    shape.start_x,
+    shape.start_y,
+    shape.end_x - shape.start_x,
+    shape.end_y - shape.start_y
+  );
 }

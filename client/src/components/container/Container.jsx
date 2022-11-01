@@ -19,7 +19,6 @@ export default function Container() {
       // console.log("resized");
       sizeRef.current.width = window.innerWidth;
       sizeRef.current.height = window.innerHeight;
-      console.log(sizeRef.current.height, sizeRef.current.width);
     };
     handleResize();
     window.addEventListener("resize", handleResize);

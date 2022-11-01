@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
 import { fillColor } from "./actions";
@@ -7,6 +8,7 @@ import {
   drawLine,
   drawOval,
   drawRect,
+  drawSelection,
   drawStar,
   drawText,
   loadImage,
@@ -20,6 +22,8 @@ export default function Board({ properties, setProperties }) {
   const [socket, setSocket] = useState(null);
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
+  // const [buffer, setBuffer]=useState([])
+  const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
 
   useEffect(() => {
     //FIXME: handle dimensions (need to resize sketch too) when resizing...
@@ -47,11 +51,40 @@ export default function Board({ properties, setProperties }) {
 
   /*Redraw function*/
   const redraw = (ctx) => {
-    if (drawing.length > 0) {
-      ctx.putImageData(drawing[drawing.length - 1], 0, 0);
+    console.log(index, drawing.length);
+    if (index === -1) {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    } // -2 or >=0
+    else
+      ctx.putImageData(drawing[index != -2 ? index : drawing.length - 1], 0, 0);
+  };
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    redraw(ctx);
+  }, [index]);
+
+  const undo = (ctx) => {
+    if (index === -1) return;
+    if (index === -2) {
+      setIndex(drawing.length - 2);
+    } else {
+      setIndex((i) => i - 1);
+    }
+  };
+  const redo = (ctx) => {
+    if (index === -2 || index === drawing.length - 1) return;
+    if (index < drawing.length - 1) {
+      setIndex((i) => i + 1);
     }
   };
   useEffect(() => {
+    if (drawing.length > 10) {
+      // setIndex((i) => i - 1);
+      const temp = drawing;
+      temp.shift();
+      setDrawing(temp);
+    }
     const ctx = canvasRef.current.getContext("2d");
     redraw(ctx);
   }, [drawing]);
@@ -99,23 +132,28 @@ export default function Board({ properties, setProperties }) {
     } else if (properties.currentTool === "download") {
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      redraw(ctx)
+      redraw(ctx);
       downloadImage(canvasRef.current);
       setProperties({ ...properties, currentTool: "pencil" });
       return;
     } else if (properties.currentTool === "paintBucket") {
-      try {
-        canvasRef.current.removeEventListener("click", paintPixels);
-      } catch {
-        console.log("not added bro");
-      }
       canvasRef.current.addEventListener("click", paintPixels);
+    } else if (properties.currentTool === "undo") {
+      undo(ctx);
+      setProperties({ ...properties, currentTool: "pencil" });
+      return;
+    } else if (properties.currentTool === "redo") {
+      redo(ctx);
+      setProperties({ ...properties, currentTool: "pencil" });
+      return;
     }
+
     function paintPixels(e) {
       const x = e.pageX - node.offsetLeft;
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
+      setIndex(-2);
       setDrawing([...drawing, imgdata]);
     }
     /*Mouse Capturing with Event listeners*/
@@ -144,7 +182,11 @@ export default function Board({ properties, setProperties }) {
 
     function mouseUp(e) {
       setFirstStroke(true);
+      if (properties.currentTool === "text") {
+        return;
+      }
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
+      setIndex(-2);
       setDrawing([...drawing, imgdata]);
       // socket.emit("canvas-data", { img: imgdata, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
@@ -191,6 +233,16 @@ export default function Board({ properties, setProperties }) {
         };
         redraw(ctx);
         drawRect(ctx, temp);
+      } else if (properties.currentTool === "text") {
+        const temp = {
+          title: "text",
+          start_x: mouse_starting.x,
+          start_y: mouse_starting.y,
+          end_x: mouse.x,
+          end_y: mouse.y,
+        };
+        redraw(ctx);
+        drawSelection(ctx, temp);
       } else if (properties.currentTool === "star") {
         const cx = (mouse_starting.x + mouse.x) / 2.0;
         const cy = (mouse_starting.y + mouse.y) / 2.0;
@@ -262,6 +314,19 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
+      <div
+        className="bg-white"
+        onClick={() => undo(canvasRef.current.getContext("2d"))}
+      >
+        Undo
+      </div>
+      <div
+        className="bg-white"
+        onClick={() => redo(canvasRef.current.getContext("2d"))}
+      >
+        Redo
+      </div>
+
       {/* <button onClick={() => downloadImage(canvasRef.current)}>Download</button> */}
       <canvas ref={canvasRef} className=""></canvas>
     </div>
