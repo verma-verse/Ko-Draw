@@ -1,4 +1,3 @@
-import { createElement } from "react";
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
 import { fillColor } from "./actions";
@@ -22,7 +21,6 @@ export default function Board({ properties, setProperties }) {
   const [socket, setSocket] = useState(null);
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
-  // const [buffer, setBuffer]=useState([])
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
 
   useEffect(() => {
@@ -64,7 +62,7 @@ export default function Board({ properties, setProperties }) {
     redraw(ctx);
   }, [index]);
 
-  const undo = (ctx) => {
+  const undo = () => {
     if (index === -1) return;
     if (index === -2) {
       setIndex(drawing.length - 2);
@@ -72,7 +70,7 @@ export default function Board({ properties, setProperties }) {
       setIndex((i) => i - 1);
     }
   };
-  const redo = (ctx) => {
+  const redo = () => {
     if (index === -2 || index === drawing.length - 1) return;
     if (index < drawing.length - 1) {
       setIndex((i) => i + 1);
@@ -80,7 +78,6 @@ export default function Board({ properties, setProperties }) {
   };
   useEffect(() => {
     if (drawing.length > 10) {
-      // setIndex((i) => i - 1);
       const temp = drawing;
       temp.shift();
       setDrawing(temp);
@@ -153,8 +150,12 @@ export default function Board({ properties, setProperties }) {
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
-      setIndex(-2);
-      setDrawing([...drawing, imgdata]);
+      const temp = drawing;
+      if (index != -2) {
+        temp.splice(index + 1, drawing.length - index - 1);
+        setIndex(-2);
+      }
+      setDrawing([...temp, imgdata]);
     }
     /*Mouse Capturing with Event listeners*/
     let mouse = { x: 0, y: 0 };
@@ -186,8 +187,12 @@ export default function Board({ properties, setProperties }) {
         return;
       }
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
-      setIndex(-2);
-      setDrawing([...drawing, imgdata]);
+      const temp = drawing;
+      if (index != -2) {
+        temp.splice(index + 1, drawing.length - index - 1);
+        setIndex(-2);
+      }
+      setDrawing([...temp, imgdata]);
       // socket.emit("canvas-data", { img: imgdata, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
       if (
@@ -314,16 +319,10 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div
-        className="bg-white"
-        onClick={() => undo(canvasRef.current.getContext("2d"))}
-      >
+      <div className="bg-white" onClick={undo}>
         Undo
       </div>
-      <div
-        className="bg-white"
-        onClick={() => redo(canvasRef.current.getContext("2d"))}
-      >
+      <div className="bg-white" onClick={redo}>
         Redo
       </div>
 
