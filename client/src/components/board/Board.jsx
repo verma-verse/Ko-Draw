@@ -114,7 +114,7 @@ export default function Board({ properties, setProperties }) {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     if (properties.currentTool === "eraser") {
-      ctx.strokeStyle = "#FFFFFF";
+      ctx.strokeStyle = "#FFFFFF"; //TODO: bgcolor
     } else if (properties.currentTool === "line") {
       ctx.lineCap = "square";
       ctx.lineJoin = "miter";
@@ -124,13 +124,6 @@ export default function Board({ properties, setProperties }) {
       ctx.lineJoin = "miter";
     } else if (properties.currentTool === "image") {
       loadImage(canvasRef.current, socket);
-      setProperties({ ...properties, currentTool: "pencil" });
-      return;
-    } else if (properties.currentTool === "download") {
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      redraw(ctx);
-      downloadImage(canvasRef.current);
       setProperties({ ...properties, currentTool: "pencil" });
       return;
     } else if (properties.currentTool === "paintBucket") {
@@ -319,14 +312,29 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div className="bg-white" onClick={undo}>
-        Undo
+      <div className="flex justify-around py-1 bg-gray-700 text-white">
+        <span
+          className="border hover:cursor-pointer border-white rounded-md"
+          onClick={undo}
+        >
+          undo
+        </span>
+        <span
+          className="border hover:cursor-pointer border-white rounded-md"
+          onClick={redo}
+        >
+          redo
+        </span>
+        <span
+          className="border hover:cursor-pointer border-white rounded-md"
+          onClick={() => {
+            downloadImage(canvasRef.current);
+            setProperties({ ...properties, currentTool: "pencil" });
+          }}
+        >
+          download
+        </span>
       </div>
-      <div className="bg-white" onClick={redo}>
-        Redo
-      </div>
-
-      {/* <button onClick={() => downloadImage(canvasRef.current)}>Download</button> */}
       <canvas ref={canvasRef} className=""></canvas>
     </div>
   );

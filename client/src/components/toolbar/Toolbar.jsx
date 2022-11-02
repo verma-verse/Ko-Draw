@@ -87,12 +87,6 @@ export default function Toolbar({ properties, setProperties }) {
             title="circle"
             component={<BsCircle />}
           />
-          <Tool
-            properties={properties}
-            setProperties={setProperties}
-            title="download"
-            component={<BsDownload />}
-          />
         </div>
       </div>
       {properties.currentTool === "eraser" ? (

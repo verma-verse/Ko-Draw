@@ -130,9 +130,10 @@ export function loadImage(canvas, socket) {
 }
 
 export function downloadImage(canvas) {
-  const ctx = canvas.getContext("2d");
   const link = document.createElement("a");
-  link.download = "download.png";
+  const fileName = window.prompt("Enter fileName:");
+  if (!fileName || fileName === "") link.download = "download.png";
+  else link.download = fileName + ".png";
   let dt = canvas.toDataURL("image/png");
   link.href = dt.replace(/^data:image\/[^;]/, "data:application/octet-stream");
   link.click();
