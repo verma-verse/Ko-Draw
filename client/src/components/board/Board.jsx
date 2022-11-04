@@ -9,7 +9,7 @@ import {
   drawRect,
   drawSelection,
   drawStar,
-  drawText,
+  drawTextArea,
   loadImage,
 } from "./DrawingShapes";
 
@@ -55,13 +55,24 @@ export default function Board({ properties, setProperties }) {
       ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     } // -2 or >=0
     else
-      ctx.putImageData(drawing[index != -2 ? index : drawing.length - 1], 0, 0);
+      ctx.putImageData(
+        drawing[index !== -2 ? index : drawing.length - 1],
+        0,
+        0
+      );
   };
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     redraw(ctx);
   }, [index]);
 
+  const reset = () => {
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setIndex(-1);
+    setDrawing([]);
+  };
   const undo = () => {
     if (index === -1) return;
     if (index === -2) {
@@ -137,14 +148,13 @@ export default function Board({ properties, setProperties }) {
       setProperties({ ...properties, currentTool: "pencil" });
       return;
     }
-
     function paintPixels(e) {
       const x = e.pageX - node.offsetLeft;
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
       const temp = drawing;
-      if (index != -2) {
+      if (index !== -2) {
         temp.splice(index + 1, drawing.length - index - 1);
         setIndex(-2);
       }
@@ -177,11 +187,17 @@ export default function Board({ properties, setProperties }) {
     function mouseUp(e) {
       setFirstStroke(true);
       if (properties.currentTool === "text") {
-        return;
+        redraw(ctx);
+        drawTextArea(
+          sketchRef.current,
+          canvasRef.current,
+          mouse_starting,
+          mouse
+        );
       }
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
       const temp = drawing;
-      if (index != -2) {
+      if (index !== -2) {
         temp.splice(index + 1, drawing.length - index - 1);
         setIndex(-2);
       }
@@ -189,13 +205,14 @@ export default function Board({ properties, setProperties }) {
       // socket.emit("canvas-data", { img: imgdata, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
       if (
-        ["rectangle", "circle", "line", "star", "oval"].includes(
+        ["rectangle", "circle", "line", "star", "oval", "text"].includes(
           properties.currentTool
         )
       ) {
         setProperties({ ...properties, currentTool: "pencil" });
       }
     }
+
     const MouseUp = function (event) {
       return mouseUp(event);
     };
@@ -312,21 +329,27 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div className="flex justify-around py-1 bg-gray-700 text-white">
+      <div className="flex justify-around py-1 text-white bg-gray-700">
         <span
-          className="border hover:cursor-pointer border-white rounded-md"
+          className="border border-white rounded-md hover:cursor-pointer"
+          onClick={reset}
+        >
+          reset
+        </span>
+        <span
+          className="border border-white rounded-md hover:cursor-pointer"
           onClick={undo}
         >
           undo
         </span>
         <span
-          className="border hover:cursor-pointer border-white rounded-md"
+          className="border border-white rounded-md hover:cursor-pointer"
           onClick={redo}
         >
           redo
         </span>
         <span
-          className="border hover:cursor-pointer border-white rounded-md"
+          className="border border-white rounded-md hover:cursor-pointer"
           onClick={() => {
             downloadImage(canvasRef.current);
             setProperties({ ...properties, currentTool: "pencil" });
@@ -335,6 +358,9 @@ export default function Board({ properties, setProperties }) {
           download
         </span>
       </div>
+      {
+        //TODO: make dialog box for text options...
+      }
       <canvas ref={canvasRef} className=""></canvas>
     </div>
   );

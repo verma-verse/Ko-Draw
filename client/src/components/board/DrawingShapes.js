@@ -95,12 +95,30 @@ export function drawOval(ctx, shape) {
   ctx.stroke();
 }
 
-export function drawText(ctx, shape) {
-  console.log(shape);
-  ctx.strokeStyle = shape.color;
-  ctx.lineWidth = shape.size;
-  ctx.font = shape.font;
-  ctx.strokeText(shape.text, shape.x, shape.y);
+export function drawTextArea(parent, canvas, mouse_starting, mouse) {
+  let area = document.createElement("textarea");
+  area.style.width = mouse.x - mouse_starting.x;
+  area.style.height = mouse.y - mouse_starting.y;
+  area.style.position = "fixed";
+  area.style.top = canvas.offsetTop + mouse_starting.y + "px";
+  area.style.left = canvas.offsetLeft + mouse_starting.x + "px";
+  area.style.zIndex = 100;
+  area.style.paddingLeft = "2px";
+  parent.appendChild(area);
+  area.onfocus = (e) => {
+    area.style.outlineColor = "blue";
+    area.style.backgroundColor = "white";
+  };
+  area.focus();
+  area.onblur = () => {
+    const text = area.value;
+    area.remove();
+    console.log(text);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "black";
+    ctx.font = "20px serif"; //TODO: instead of hardcoding, provide options to users..
+    ctx.fillText(text, mouse_starting.x, mouse_starting.y); //TODO: implement to draw multiple lines..
+  };
 }
 
 export function loadImage(canvas, socket) {
@@ -137,17 +155,18 @@ export function downloadImage(canvas) {
   let dt = canvas.toDataURL("image/png");
   link.href = dt.replace(/^data:image\/[^;]/, "data:application/octet-stream");
   link.click();
-  // link.remove();
+  link.remove();
 }
 
 export function drawSelection(ctx, shape) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "#000000";
-  ctx.setLineDash([7]);
+  ctx.setLineDash([10]);
   ctx.strokeRect(
     shape.start_x,
     shape.start_y,
     shape.end_x - shape.start_x,
     shape.end_y - shape.start_y
   );
+  ctx.setLineDash([]);
 }

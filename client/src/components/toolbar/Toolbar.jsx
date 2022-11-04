@@ -7,6 +7,8 @@ import { TbRectangle, TbOvalVertical } from "react-icons/tb";
 import { FaPaintBrush } from "react-icons/fa";
 import { SiPlatformdotsh } from "react-icons/si";
 import { GrGallery } from "react-icons/gr";
+import { MdOutlineCropFree } from "react-icons/md";
+
 import { useState } from "react";
 
 import Tool from "./Tool";
@@ -35,7 +37,6 @@ export default function Toolbar({ properties, setProperties }) {
             title="eraser"
             component={<BiEraser />}
           />
-
           <Tool
             properties={properties}
             setProperties={setProperties}
@@ -67,6 +68,12 @@ export default function Toolbar({ properties, setProperties }) {
             setProperties={setProperties}
             title="star"
             component={<AiOutlineStar />}
+          />
+          <Tool
+            properties={properties}
+            setProperties={setProperties}
+            title="select"
+            component={<MdOutlineCropFree />}
           />
           <Tool
             properties={properties}
