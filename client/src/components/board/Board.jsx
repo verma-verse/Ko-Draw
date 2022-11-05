@@ -13,12 +13,13 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
+const socket = io.connect("http://localhost:8888");
+
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
   const [receiving, setReceiving] = useState(false);
-  const [socket, setSocket] = useState(null);
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
@@ -49,17 +50,19 @@ export default function Board({ properties, setProperties }) {
 
   /*Redraw function*/
   const redraw = (ctx) => {
-    console.log(index, drawing.length);
+    // console.log(index, drawing.length);
     if (index === -1) {
       ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     } // -2 or >=0
-    else
+    else {
+      // console.log(drawing[drawing.length - 1]);
       ctx.putImageData(
         drawing[index !== -2 ? index : drawing.length - 1],
         0,
         0
       );
+    }
   };
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
@@ -98,25 +101,55 @@ export default function Board({ properties, setProperties }) {
   }, [drawing]);
 
   /*Connect to socket and receive*/
-  /*  useEffect(() => {
-    const temp = io.connect("http://localhost:8888");
-    temp.on("connect", () => {
-      temp.on("canvas-data", function (data) {
-        // if (data.id === socket.id) {
-        //   console.log("self");
-        //   return;
-        // }
-        let interval = setInterval(function () {
-          if (receiving) return;
-          setReceiving(true);
-          clearInterval(interval);
-          setReceiving(false);
-          setDrawing([...drawing, data.img]);
-        }, 100);
-      });
-      setSocket(temp);
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("connected: " + socket.id);
     });
-  }, []) */ useEffect(() => {
+    socket.on("canvas-data", function (data) {
+      if (data.id === socket.id) {
+        console.log("self");
+        return;
+      }
+      let interval = setInterval(function () {
+        if (receiving) return;
+        setReceiving(true);
+        clearInterval(interval);
+        const ctx = canvasRef.current.getContext("2d");
+        // console.log(data.img);
+        // ctx.putImageData(data.img, 0, 0);
+        const img = new Image();
+        img.src = data.img;
+        img.onload = function () {
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height
+          );
+        };
+        setReceiving(false);
+        const temp = drawing;
+        if (index !== -2) {
+          temp.splice(index + 1, drawing.length - index - 1);
+          setIndex(-2);
+        }
+        const imgdata = ctx.getImageData(
+          0,
+          0,
+          canvasRef.current.width,
+          canvasRef.current.height
+        );
+        setDrawing([...temp, imgdata]);
+      }, 200);
+    });
+    return () => {
+      socket.off("connect");
+      socket.off("canvas-data");
+    };
+  }, []);
+
+  useEffect(() => {
     let node = canvasRef.current;
     let ctx = node.getContext("2d");
     // redraw(ctx);
@@ -201,8 +234,13 @@ export default function Board({ properties, setProperties }) {
         temp.splice(index + 1, drawing.length - index - 1);
         setIndex(-2);
       }
+      const imgd = canvasRef.current.toDataURL("image/png");
+      //for some reasons emitting imagedata not working..
+      socket.emit("canvas-data", {
+        img: imgd,
+        id: socket.id,
+      });
       setDrawing([...temp, imgdata]);
-      // socket.emit("canvas-data", { img: imgdata, id: socket.id });
       node.removeEventListener("mousemove", onPaint, false);
       if (
         ["rectangle", "circle", "line", "star", "oval", "text"].includes(
@@ -320,10 +358,10 @@ export default function Board({ properties, setProperties }) {
       node.removeEventListener("mousemove", MouseMove, false);
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
-      // if (sending) {
-      //   clearTimeout(sending);
-      //   setSending(null);
-      // }
+      if (sending) {
+        clearTimeout(sending);
+        setSending(null);
+      }
     };
   }, [properties, socket]);
 

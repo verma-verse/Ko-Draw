@@ -14,6 +14,7 @@ app.use(function (req, res, next) {
 io.on("connection", (socket) => {
   socket.on("canvas-data", (data) => {
     socket.broadcast.emit("canvas-data", data);
+    console.log(data.id);
   });
 });
 
