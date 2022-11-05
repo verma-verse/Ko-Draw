@@ -329,7 +329,7 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div className="flex justify-around py-1 text-white bg-gray-700">
+      {/* <div className="flex justify-around py-1 text-white bg-gray-700">
         <span
           className="border border-white rounded-md hover:cursor-pointer"
           onClick={reset}
@@ -357,7 +357,7 @@ export default function Board({ properties, setProperties }) {
         >
           download
         </span>
-      </div>
+      </div> */}
       {
         //TODO: make dialog box for text options...
       }
