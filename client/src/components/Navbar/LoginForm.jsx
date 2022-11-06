@@ -3,7 +3,7 @@ import Register from "./Register";
 const LoginForm = ({ setIsShowLogin }) => {
     return (
         <div className="active">
-            <div className="login-form">
+            <div className="login-form w-fit ">
                 <div className="form-box solid">
                     <form>
                         <h1 className="login-text">Sign In</h1>

@@ -2,10 +2,10 @@ import React from "react";
 const Register = ({ setIsShowLogin }) => {
     return (
         <div className="active">
-            <div className="login-form">
+            <div className="flex justify-center w-full align-middle login-form min-h-fit">
                 <div className="form-box solid">
                     <form>
-                        <h1 className="login-text">Sign Up</h1>
+                        <h1 className="w-full login-text colo">Sign Up</h1>
                         <label>First Name</label>
                         <br></br>
                         <input type="text" name="first-name" className="login-box" />

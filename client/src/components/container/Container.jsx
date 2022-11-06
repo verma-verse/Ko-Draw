@@ -3,8 +3,8 @@ import Toolbar from "../toolbar/Toolbar";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
-import LoginForm from "../LoginForm";
-import NavBar from "../NavBar";
+import LoginForm from "../Navbar/LoginForm";
+import NavBar from "../Navbar/NavBar";
 export default function Container() {
   const sizeRef = useRef(null);
   const [properties, setProperties] = useState({

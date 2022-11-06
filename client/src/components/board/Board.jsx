@@ -379,16 +379,16 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div className="flex justify-around py-1 text-white bg-gray-700">
-        {Object.values(userCursors).map((items, index) => (
-          <span
-            id={index}
-            key={index}
-            className={"absolute text-2xl bg-gray-400 z-50"}
-          >
-            @
-          </span>
-        ))}
+      {Object.values(userCursors).map((items, index) => (
+        <span
+          id={index}
+          key={index}
+          className={"absolute text-2xl bg-gray-400 z-50"}
+        >
+          @
+        </span>
+      ))}
+      {/* <div className="flex justify-around py-1 text-white bg-gray-700">
         <span
           className="border border-white rounded-md hover:cursor-pointer"
           onClick={reset}
@@ -416,7 +416,7 @@ export default function Board({ properties, setProperties }) {
         >
           download
         </span>
-      </div>
+      </div> */}
       {
         //TODO: make dialog box for text options...
       }
