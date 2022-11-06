@@ -1,15 +1,13 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function NavBar({ handleLoginClick }) {
-  const handleClick = () => {
-    handleLoginClick();
-  };
   return (
     <div className="z-50 navbar">
       <div>
-        <span onClick={handleClick} className="loginicon">
+        <Link to="/login" className="loginicon">
           Sign In
-        </span>
+        </Link>
       </div>
       <div className="dropdown">
         <button className="dropbtn">File</button>
