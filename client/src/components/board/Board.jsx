@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
-import { fillColor } from "./actions";
+import { addMousePosition, fillColor } from "./actions";
 import {
   downloadImage,
   drawCircle,
@@ -13,16 +13,18 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
-const socket = io.connect("http://localhost:8888");
+const socket = io.connect("http://localhost:8080");
+let mouseSending = null;
 
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
   const [receiving, setReceiving] = useState(false);
-  const [sending, setSending] = useState(null);
+  // const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
+  const [userCursors, setUserCursors] = useState([]);
 
   useEffect(() => {
     //FIXME: handle dimensions (need to resize sketch too) when resizing...
@@ -105,11 +107,15 @@ export default function Board({ properties, setProperties }) {
     socket.on("connect", () => {
       console.log("connected: " + socket.id);
     });
+    socket.on("mouse", (data) => {
+      addMousePosition(data, sketchRef.current, canvasRef.current);
+      setUserCursors([...userCursors, data.id]);
+    });
+    socket.on("removeMouse", (id) => {
+      const node = document.getElementById(id);
+      if (node) node.remove();
+    });
     socket.on("canvas-data", function (data) {
-      if (data.id === socket.id) {
-        console.log("self");
-        return;
-      }
       let interval = setInterval(function () {
         if (receiving) return;
         setReceiving(true);
@@ -128,7 +134,6 @@ export default function Board({ properties, setProperties }) {
             canvasRef.current.height
           );
         };
-        setReceiving(false);
         const temp = drawing;
         if (index !== -2) {
           temp.splice(index + 1, drawing.length - index - 1);
@@ -141,11 +146,19 @@ export default function Board({ properties, setProperties }) {
           canvasRef.current.height
         );
         setDrawing([...temp, imgdata]);
+        setReceiving(false);
       }, 200);
     });
     return () => {
+      userCursors.forEach((val, idx) => {
+        const el = document.getElementById(val);
+        if (el) el.remove();
+      });
+      setUserCursors([]);
       socket.off("connect");
       socket.off("canvas-data");
+      socket.off("mouse");
+      socket.off("removeMouse");
     };
   }, []);
 
@@ -235,7 +248,7 @@ export default function Board({ properties, setProperties }) {
         setIndex(-2);
       }
       const imgd = canvasRef.current.toDataURL("image/png");
-      //for some reasons emitting imagedata not working..
+      //for some reasons emitting imagedata not working..33% larger size :(
       socket.emit("canvas-data", {
         img: imgd,
         id: socket.id,
@@ -351,6 +364,12 @@ export default function Board({ properties, setProperties }) {
         ctx.stroke();
       }
     };
+    if (mouseSending) {
+      clearInterval(mouseSending);
+    }
+    mouseSending = setInterval(() => {
+      socket.emit("mouse", { mouse, id: socket.id });
+    }, 500);
 
     /*Cleanup function*/
     return () => {
@@ -358,10 +377,6 @@ export default function Board({ properties, setProperties }) {
       node.removeEventListener("mousemove", MouseMove, false);
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
-      if (sending) {
-        clearTimeout(sending);
-        setSending(null);
-      }
     };
   }, [properties, socket]);
 
