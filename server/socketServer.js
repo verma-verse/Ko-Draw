@@ -16,11 +16,15 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("canvas-data", data);
   });
   socket.on("mouse", (data) => {
+    // console.log(data);
     socket.broadcast.emit("mouse", data);
+  });
+  socket.on("disconnect", function () {
+    socket.broadcast.emit("removeMouse", socket.id);
   });
 });
 
-const socketPORT = process.env.socketPORT || 8888;
+const socketPORT = process.env.socketPORT || 8080;
 http.listen(socketPORT, () => {
   console.log("socket server started on : " + socketPORT);
 });

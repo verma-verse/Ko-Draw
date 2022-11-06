@@ -13,17 +13,18 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
-const socket = io.connect("http://localhost:8888");
+const socket = io.connect("http://localhost:8080");
+let mouseSending = null;
 
 export default function Board({ properties, setProperties }) {
   const canvasRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
   const [receiving, setReceiving] = useState(false);
-  const [sending, setSending] = useState(null);
+  // const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
-  const [userCursors, setUserCursors] = useState({});
+  const [userCursors, setUserCursors] = useState([]);
 
   useEffect(() => {
     //FIXME: handle dimensions (need to resize sketch too) when resizing...
@@ -101,17 +102,18 @@ export default function Board({ properties, setProperties }) {
     redraw(ctx);
   }, [drawing]);
 
-  useEffect(() => {
-    if (userCursors) addMousePosition(userCursors);
-  }, [userCursors]);
   /*Connect to socket and receive*/
   useEffect(() => {
     socket.on("connect", () => {
       console.log("connected: " + socket.id);
     });
     socket.on("mouse", (data) => {
-      console.log({ ...userCursors });
-      setUserCursors({ ...userCursors, [data.id]: data.mouse });
+      addMousePosition(data, sketchRef.current, canvasRef.current);
+      setUserCursors([...userCursors, data.id]);
+    });
+    socket.on("removeMouse", (id) => {
+      const node = document.getElementById(id);
+      if (node) node.remove();
     });
     socket.on("canvas-data", function (data) {
       let interval = setInterval(function () {
@@ -148,9 +150,15 @@ export default function Board({ properties, setProperties }) {
       }, 200);
     });
     return () => {
+      userCursors.forEach((val, idx) => {
+        const el = document.getElementById(val);
+        if (el) el.remove();
+      });
+      setUserCursors([]);
       socket.off("connect");
       socket.off("canvas-data");
       socket.off("mouse");
+      socket.off("removeMouse");
     };
   }, []);
 
@@ -356,38 +364,24 @@ export default function Board({ properties, setProperties }) {
         ctx.stroke();
       }
     };
-    if (sending) {
-      clearInterval(sending);
-      setSending(null);
+    if (mouseSending) {
+      clearInterval(mouseSending);
     }
-    let intv = setInterval(() => {
+    mouseSending = setInterval(() => {
       socket.emit("mouse", { mouse, id: socket.id });
-    }, 3000);
-    setSending(intv);
+    }, 500);
+
     /*Cleanup function*/
     return () => {
       node.removeEventListener("click", paintPixels);
       node.removeEventListener("mousemove", MouseMove, false);
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
-      if (sending) {
-        clearInterval(sending);
-        setSending(null);
-      }
     };
   }, [properties, socket]);
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      {Object.values(userCursors).map((items, index) => (
-        <span
-          id={index}
-          key={index}
-          className={"absolute text-2xl bg-gray-400 z-50"}
-        >
-          @
-        </span>
-      ))}
       {/* <div className="flex justify-around py-1 text-white bg-gray-700">
         <span
           className="border border-white rounded-md hover:cursor-pointer"

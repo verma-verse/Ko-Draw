@@ -85,11 +85,22 @@ export function fillColor(canvas, x, y, new_color) {
   });
 }
 
-export function addMousePosition(mousearr) {
-  for (const id in mousearr) {
-    const node = document.getElementById(id);
-    console.log(node);
-    node.style.top = mousearr[id].y;
-    node.style.left = mousearr[id].x;
+export function addMousePosition(data, parent, canvas) {
+  // console.log(data);
+  let node = document.getElementById(data.id);
+  if (!node) {
+    node = document.createElement("span");
+    node.id = data.id;
   }
+  node.style.backgroundColor = "black";
+  node.style.color = "white";
+  node.style.position = "absolute";
+  const pos = canvas.getBoundingClientRect();
+  node.style.left = pos.left + data.mouse.x + "px";
+  node.style.top = pos.top + data.mouse.y + "px";
+  // console.log(node.style.top, node.style.y);
+  node.innerHTML = "a";
+  node.style.zIndex = 100;
+  parent.appendChild(node);
+  // console.log(node);
 }
