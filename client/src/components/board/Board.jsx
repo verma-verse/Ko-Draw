@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
-import { fillColor } from "./actions";
+import { addMousePosition, fillColor } from "./actions";
 import {
   downloadImage,
   drawCircle,
@@ -23,6 +23,7 @@ export default function Board({ properties, setProperties }) {
   const [sending, setSending] = useState(null);
   const [firstStroke, setFirstStroke] = useState(true);
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
+  const [userCursors, setUserCursors] = useState({});
 
   useEffect(() => {
     //FIXME: handle dimensions (need to resize sketch too) when resizing...
@@ -100,16 +101,19 @@ export default function Board({ properties, setProperties }) {
     redraw(ctx);
   }, [drawing]);
 
+  useEffect(() => {
+    if (userCursors) addMousePosition(userCursors);
+  }, [userCursors]);
   /*Connect to socket and receive*/
   useEffect(() => {
     socket.on("connect", () => {
       console.log("connected: " + socket.id);
     });
+    socket.on("mouse", (data) => {
+      console.log({ ...userCursors });
+      setUserCursors({ ...userCursors, [data.id]: data.mouse });
+    });
     socket.on("canvas-data", function (data) {
-      if (data.id === socket.id) {
-        console.log("self");
-        return;
-      }
       let interval = setInterval(function () {
         if (receiving) return;
         setReceiving(true);
@@ -128,7 +132,6 @@ export default function Board({ properties, setProperties }) {
             canvasRef.current.height
           );
         };
-        setReceiving(false);
         const temp = drawing;
         if (index !== -2) {
           temp.splice(index + 1, drawing.length - index - 1);
@@ -141,11 +144,13 @@ export default function Board({ properties, setProperties }) {
           canvasRef.current.height
         );
         setDrawing([...temp, imgdata]);
+        setReceiving(false);
       }, 200);
     });
     return () => {
       socket.off("connect");
       socket.off("canvas-data");
+      socket.off("mouse");
     };
   }, []);
 
@@ -235,7 +240,7 @@ export default function Board({ properties, setProperties }) {
         setIndex(-2);
       }
       const imgd = canvasRef.current.toDataURL("image/png");
-      //for some reasons emitting imagedata not working..
+      //for some reasons emitting imagedata not working..33% larger size :(
       socket.emit("canvas-data", {
         img: imgd,
         id: socket.id,
@@ -351,7 +356,14 @@ export default function Board({ properties, setProperties }) {
         ctx.stroke();
       }
     };
-
+    if (sending) {
+      clearInterval(sending);
+      setSending(null);
+    }
+    let intv = setInterval(() => {
+      socket.emit("mouse", { mouse, id: socket.id });
+    }, 3000);
+    setSending(intv);
     /*Cleanup function*/
     return () => {
       node.removeEventListener("click", paintPixels);
@@ -359,7 +371,7 @@ export default function Board({ properties, setProperties }) {
       node.removeEventListener("mousedown", MouseDown, false);
       node.removeEventListener("mouseup", MouseUp, false);
       if (sending) {
-        clearTimeout(sending);
+        clearInterval(sending);
         setSending(null);
       }
     };
@@ -368,6 +380,15 @@ export default function Board({ properties, setProperties }) {
   return (
     <div className="w-full h-full" ref={sketchRef}>
       <div className="flex justify-around py-1 text-white bg-gray-700">
+        {Object.values(userCursors).map((items, index) => (
+          <span
+            id={index}
+            key={index}
+            className={"absolute text-2xl bg-gray-400 z-50"}
+          >
+            @
+          </span>
+        ))}
         <span
           className="border border-white rounded-md hover:cursor-pointer"
           onClick={reset}

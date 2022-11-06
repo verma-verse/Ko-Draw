@@ -18,7 +18,7 @@ export function fillColor(canvas, x, y, new_color) {
   const ctx = canvas.getContext("2d");
   let id = ctx.getImageData(0, 0, width, height);
   let curr_pixel_pos = (y * width + x) * 4;
-  
+
   //getting the color of current pixel
   let start_r = id.data[curr_pixel_pos + 0];
   let start_g = id.data[curr_pixel_pos + 1];
@@ -85,113 +85,11 @@ export function fillColor(canvas, x, y, new_color) {
   });
 }
 
-// export function fillColor(canvas, ctx, x, y, newColor) {
-//   // function change(data) {
-//   //   for (var i = 0; i < data.length; i += 4) {
-//   //     data[i] = 255;
-//   //     data[i + 1] = 1;
-//   //     data[i + 2] = 1;
-//   //     data[i + 3] = 1;
-//   //   }
-//   // }
-//   let cnt = 0;
-//   let c_width = canvas.width;
-//   let c_height = canvas.height;
-//   let id = ctx.getImageData(0, 0, c_width, c_height);
-//   let id.data = id.data;
-//   const [r, g, b] = hex(newColor);
-//   const fill_r = r;
-//   const fill_g = g;
-//   const fill_b = b;
-//   const fill_a = 1;
-//   let stack = [[x, y]];
-//   const cid = id;
-//   let pixel_pos = (y * c_width + x) * 4;
-//   let start_r = id.data[pixel_pos + 0];
-//   let start_g = id.data[pixel_pos + 1];
-//   let start_b = id.data[pixel_pos + 2];
-//   let start_a = id.data[pixel_pos + 3];
-
-//   if (
-//     fill_r === start_r &&
-//     fill_g === start_g &&
-//     fill_b === start_b &&
-//     fill_a === start_a
-//   ) {
-//     console.log("no need to paint.. same");
-//     return;
-//   }
-
-//   while (stack.length) {
-//     let new_pos, x, y, pixel_pos, reach_left, reach_right;
-//     new_pos = stack.pop();
-//     x = new_pos[0];
-//     y = new_pos[1];
-
-//     pixel_pos = (y * c_width + x) * 4;
-//     while (matches_start_color(pixel_pos)) {
-//       y--;
-//       pixel_pos = (y * c_width + x) * 4;
-//     }
-//     reach_left = false;
-//     reach_right = false;
-//     while (true) {
-//       y++;
-//       pixel_pos = (y * c_width + x) * 4;
-
-//       if (!(y < c_height && matches_start_color(pixel_pos))) {
-//         break;
-//       }
-
-//       color_pixel(pixel_pos);
-//       cnt++;
-//       if (x > 0) {
-//         if (matches_start_color(pixel_pos - 4)) {
-//           if (!reach_left) {
-//             stack.push([x - 1, y]);
-//             reach_left = true;
-//           }
-//         } else if (reach_left) {
-//           reach_left = false;
-//         }
-//       }
-
-//       if (x < c_width - 1) {
-//         if (matches_start_color(pixel_pos + 4)) {
-//           if (!reach_right) {
-//             stack.push([x + 1, y]);
-//             reach_right = true;
-//           }
-//         } else if (reach_right) {
-//           reach_right = false;
-//         }
-//       }
-
-//       pixel_pos += c_width * 4;
-//     }
-//   }
-//   ctx.clearRect(0, 0, c_width, c_height);
-//   id = ctx.createImageData(c_width, c_height);
-//   id.data.set(id.data);
-//   ctx.putImageData(id, 0, 0);
-//   console.log(id.data.length - cnt * 4);
-//   if (id === cid) console.log("game ho i");
-//   function matches_start_color(pixel_pos) {
-//     return (
-//       id.data[pixel_pos + 0] === start_r &&
-//       id.data[pixel_pos + 1] === start_g &&
-//       id.data[pixel_pos + 2] === start_b &&
-//       id.data[pixel_pos + 3] === start_a
-//     );
-//   }
-
-//   function color_pixel(pixel_pos) {
-//     id.data[pixel_pos + 0] = fill_r;
-//     id.data[pixel_pos + 1] = fill_g;
-//     id.data[pixel_pos + 2] = fill_b;
-//     id.data[pixel_pos + 3] = fill_a;
-//   }
-//   return new Promise((resolve, reject) => {
-//     resolve(id);
-//   });
-// }
+export function addMousePosition(mousearr) {
+  for (const id in mousearr) {
+    const node = document.getElementById(id);
+    console.log(node);
+    node.style.top = mousearr[id].y;
+    node.style.left = mousearr[id].x;
+  }
+}
