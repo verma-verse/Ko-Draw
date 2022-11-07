@@ -112,6 +112,7 @@ export default function Board({ properties, setProperties }) {
       setUserCursors([...userCursors, data.id]);
     });
     socket.on("removeMouse", (id) => {
+      console.log(id);
       const node = document.getElementById(id);
       if (node) node.remove();
     });
@@ -121,8 +122,6 @@ export default function Board({ properties, setProperties }) {
         setReceiving(true);
         clearInterval(interval);
         const ctx = canvasRef.current.getContext("2d");
-        // console.log(data.img);
-        // ctx.putImageData(data.img, 0, 0);
         const img = new Image();
         img.src = data.img;
         img.onload = function () {
@@ -133,20 +132,20 @@ export default function Board({ properties, setProperties }) {
             canvasRef.current.width,
             canvasRef.current.height
           );
+          const temp = drawing;
+          if (index !== -2) {
+            temp.splice(index + 1, drawing.length - index - 1);
+            setIndex(-2);
+          }
+          const imgdata = ctx.getImageData(
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height
+          );
+          setReceiving(false);
+          setDrawing([...temp, imgdata]);
         };
-        const temp = drawing;
-        if (index !== -2) {
-          temp.splice(index + 1, drawing.length - index - 1);
-          setIndex(-2);
-        }
-        const imgdata = ctx.getImageData(
-          0,
-          0,
-          canvasRef.current.width,
-          canvasRef.current.height
-        );
-        setDrawing([...temp, imgdata]);
-        setReceiving(false);
       }, 200);
     });
     return () => {
@@ -199,6 +198,12 @@ export default function Board({ properties, setProperties }) {
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
+      const imgd = canvasRef.current.toDataURL("image/png");
+      //for some reasons emitting imagedata not working..33% larger size :(
+      socket.emit("canvas-data", {
+        img: imgd,
+        id: socket.id,
+      });
       const temp = drawing;
       if (index !== -2) {
         temp.splice(index + 1, drawing.length - index - 1);
@@ -241,18 +246,17 @@ export default function Board({ properties, setProperties }) {
           mouse
         );
       }
+      const imgd = canvasRef.current.toDataURL("image/png");
+      socket.emit("canvas-data", {
+        img: imgd,
+        id: socket.id,
+      });
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
       const temp = drawing;
       if (index !== -2) {
         temp.splice(index + 1, drawing.length - index - 1);
         setIndex(-2);
       }
-      const imgd = canvasRef.current.toDataURL("image/png");
-      //for some reasons emitting imagedata not working..33% larger size :(
-      socket.emit("canvas-data", {
-        img: imgd,
-        id: socket.id,
-      });
       setDrawing([...temp, imgdata]);
       node.removeEventListener("mousemove", onPaint, false);
       if (
