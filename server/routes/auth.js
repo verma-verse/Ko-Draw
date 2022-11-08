@@ -61,4 +61,13 @@ const validate = (data) => {
     return schema.validate(data);
 };
 
+const getrandomOTP = () => {
+    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    let otp = ""
+    for (let i = 1; i <= 6; i++) {
+        otp += str[Math.floor(Math.random() * 36)]
+    }
+    return otp;
+}
+
 module.exports = router;
