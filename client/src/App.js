@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Signup from "./components/SignUp";
 import Login from "./components/Login";
 import ProfileDialog from "./components/profile/ProfileDialog";
+import Profile from "./components/profile/Profile";
 
 export default function App() {
   const user = localStorage.getItem("token");
@@ -22,7 +23,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter> */}
-      <ProfileDialog />
+      {/* <ProfileDialog /> */}
+      <Profile />
       {/* <Container /> */}
     </div>
   );
