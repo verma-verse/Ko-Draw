@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./styles.module.css";
 import Spinner
-    from "../Spinner";
+    from "../Utilities/Spinner";
 const Signup = () => {
     const [data, setData] = useState({
         firstName: "",
@@ -41,7 +41,7 @@ const Signup = () => {
             })
     };
 
-    return (
+    return (<>
         <div className={styles.signup_container}>
             <div className={styles.signup_form_container}>
                 <div className={styles.left}>
@@ -99,6 +99,7 @@ const Signup = () => {
                 </div>
             </div>
         </div>
+    </>
     );
 };
 

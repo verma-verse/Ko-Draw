@@ -20,9 +20,9 @@ function NavBar({ handleLoginClick }) {
       <div className="dropdown">
         <button className="dropbtn">Edit</button>
         <div className="dropdown-content">
-          <a href="#">New</a>
-          <a href="#">Open</a>
-          <a href="#">Save As</a>
+          <a href="#">Undo</a>
+          <a href="#">Redo</a>
+          <a href="#">Reset</a>
         </div>
       </div>
       <div className="dropdown">

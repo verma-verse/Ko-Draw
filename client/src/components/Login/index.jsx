@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./styles.module.css";
-import Spinner from "../Spinner";
+import Spinner from "../Utilities/Spinner";
 
 const Login = () => {
     const [data, setData] = useState({ email: "", password: "" });
