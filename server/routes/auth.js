@@ -7,7 +7,7 @@ router.post("/login", async (req, res) => {
     try {
         const { error } = validate(req.body);
         if (error)
-            return res.status(400).send({ message: error.details[0].message });
+            return res.status(400).send({ success: false, message: error.details[0].message });
 
         const user = await User.findOne({ email: req.body.email });
         if (!user)
@@ -28,6 +28,31 @@ router.post("/login", async (req, res) => {
     }
 });
 
+router.post("/register", async (req, res) => {
+    try {
+        console.log(req.body)
+        //TODO: validate the data (can be done in the frontend too.)
+        // const { error } = validate(req.body);
+        // if (error)
+        //     return res.status(400).send({ message: error.details[0].message });
+
+        const user = await User.findOne({ email: req.body.email });
+        if (user)
+            return res
+                .status(409)
+                .send({ success: false, message: "User with given email already Exist!" });
+
+        const salt = await bcrypt.genSalt(Number(process.env.SALT));
+        const hashPassword = await bcrypt.hash(req.body.password, salt);
+
+        await new User({ ...req.body, password: hashPassword }).save();
+        res.status(201).send({ success: true, message: "User created successfully" });
+    } catch (error) {
+        res.status(500).send({ success: false, message: "Internal Server Error" });
+    }
+});
+
+
 const validate = (data) => {
     const schema = Joi.object({
         email: Joi.string().email().required().label("Email"),
@@ -35,5 +60,14 @@ const validate = (data) => {
     });
     return schema.validate(data);
 };
+
+const getrandomOTP = () => {
+    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    let otp = ""
+    for (let i = 1; i <= 6; i++) {
+        otp += str[Math.floor(Math.random() * 36)]
+    }
+    return otp;
+}
 
 module.exports = router;

@@ -5,7 +5,7 @@ const cors = require("cors");
 const connection = require("./db");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
-
+const paintRoutes = require("./routes/paint")
 // database connection
 connection();
 
@@ -14,8 +14,9 @@ app.use(express.json());
 app.use(cors());
 
 // routes
-app.use("/api/users", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/paint", paintRoutes)
 
 app.use(function (req, res, next) {
   //CORS

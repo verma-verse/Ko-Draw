@@ -390,7 +390,7 @@ export default function Board({ properties, setProperties }) {
     }
     mouseSending = setInterval(() => {
       socket.emit("mouse", { mouse, id: socket.id });
-    }, 500);
+    }, 100);
 
     /*Cleanup function*/
     return () => {

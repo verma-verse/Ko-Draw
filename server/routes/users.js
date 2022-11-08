@@ -1,27 +1,32 @@
 const router = require("express").Router();
-const { User, validate } = require("../models/user");
-const bcrypt = require("bcrypt");
+const Paint = require("../models/paint");
+const { User } = require("../models/user");
+const Paintuser = require("./../models/paintuser")
 
-router.post("/register", async (req, res) => {
-    try {
-        const { error } = validate(req.body);
-        if (error)
-            return res.status(400).send({ message: error.details[0].message });
-
-        const user = await User.findOne({ email: req.body.email });
-        if (user)
-            return res
-                .status(409)
-                .send({ message: "User with given email already Exist!" });
-
-        const salt = await bcrypt.genSalt(Number(process.env.SALT));
-        const hashPassword = await bcrypt.hash(req.body.password, salt);
-
-        await new User({ ...req.body, password: hashPassword }).save();
-        res.status(201).send({ message: "User created successfully" });
-    } catch (error) {
-        res.status(500).send({ message: "Internal Server Error" });
-    }
-});
+router.put("/:id", (req, res) => {
+    const id = req.params.id
+    const dataToBeUpdated = req.body
+    User.findByIdAndUpdate(id, { ...dataToBeUpdated }, (err, doc) => {
+        if (err)
+            return res.status(404).json({ success: false, message: "user not found" })
+        res.json({ success: true, message: "profile updated successfully" })
+    })
+})
+router.delete("/:id", (req, res) => {
+    const id = req.params.id
+    User.findByIdAndDelete(id, (err, doc) => {
+        if (err)
+            return res.status(404).json({ success: false, message: "user not found" })
+        Paintuser.deleteMany({ user_id: id }, (err, doc) => {
+            if (err)
+                return res.status(404).json({ success: false, message: "user not found" })
+            Paint.deleteMany({ owner_id: id }, (err, doc) => {
+                if (err)
+                    return res.status(404).json({ success: false, message: "user not found" })
+                res.json({ success: true, message: "profile deleted successfully" })
+            })
+        })
+    })
+})
 
 module.exports = router;

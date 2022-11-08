@@ -2,7 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./styles.module.css";
-
+import Spinner
+    from "../Utilities/Spinner";
 const Signup = () => {
     const [data, setData] = useState({
         firstName: "",
@@ -12,30 +13,35 @@ const Signup = () => {
     });
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false)
 
     const handleChange = ({ currentTarget: input }) => {
         setData({ ...data, [input.name]: input.value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        try {
-            const url = `${process.env.REACT_APP_SERVER_URL}/api/users/register`;
-            const { data: res } = await axios.post(url, data);
-            navigate("/login");
-            console.log(res.message);
-        } catch (error) {
-            if (
-                error.response &&
-                error.response.status >= 400 &&
-                error.response.status <= 500
-            ) {
-                setError(error.response.data.message);
-            }
-        }
+        const url = `${process.env.REACT_APP_SERVER_URL}/api/users/register`;
+        setLoading(true)
+        axios.post(url, data)
+            .then(res => {
+                navigate("/login");
+                console.log(res.message);
+                setLoading(false);
+            })
+            .catch(error => {
+                if (
+                    error.response &&
+                    error.response.status >= 400 &&
+                    error.response.status <= 500
+                ) {
+                    setError(error.response.data.message);
+                }
+                setLoading(false);
+            })
     };
 
-    return (
+    return (<>
         <div className={styles.signup_container}>
             <div className={styles.signup_form_container}>
                 <div className={styles.left}>
@@ -85,13 +91,15 @@ const Signup = () => {
                             className={styles.input}
                         />
                         {error && <div className={styles.error_msg}>{error}</div>}
-                        <button type="submit" className={styles.green_btn}>
-                            Sign Up
-                        </button>
+                        {loading ? <Spinner /> :
+                            <button type="submit" className={styles.green_btn}>
+                                Sign Up
+                            </button>}
                     </form>
                 </div>
             </div>
         </div>
+    </>
     );
 };
 
