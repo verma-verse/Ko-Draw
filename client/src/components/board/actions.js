@@ -104,3 +104,79 @@ export function addMousePosition(data, parent, canvas) {
   parent.appendChild(node);
   // console.log(node);
 }
+
+export function drag(
+  sketch,
+  canvas,
+  mouse_starting,
+  mouse,
+  setProperties,
+  setDrawing
+) {
+  let parentCtx = canvas.getContext("2d");
+  const newCanvas = document.createElement("canvas");
+  newCanvas.style.border = "1px";
+  newCanvas.style.borderStyle = "dashed";
+  let childCtx = newCanvas.getContext("2d");
+  newCanvas.height = mouse.y - mouse_starting.y;
+  newCanvas.width = mouse.x - mouse_starting.x;
+  sketch.appendChild(newCanvas);
+  newCanvas.style.position = "absolute";
+  newCanvas.style.left = mouse_starting.x + canvas.offsetLeft + "px";
+  newCanvas.style.top = mouse_starting.y + canvas.offsetTop + "px";
+  newCanvas.style.zIndex = 30;
+  const imgd = parentCtx.getImageData(
+    mouse_starting.x,
+    mouse_starting.y,
+    mouse.x - mouse_starting.x,
+    mouse.y - mouse_starting.y
+  );
+  childCtx.putImageData(imgd, 0, 0);
+
+  let dragStartMouse, dragEndMouse;
+  newCanvas.draggable = true;
+  newCanvas.addEventListener("drag", (e) => {});
+  newCanvas.addEventListener("dragstart", (e) => {
+    newCanvas.style.opacity = 0.5;
+    dragEndMouse = dragStartMouse = { x: e.pageX, y: e.pageY };
+  });
+  newCanvas.addEventListener("dragend", (e) => {});
+  sketch.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dragEndMouse = {
+      x: e.pageX,
+      y: e.pageY,
+    };
+  });
+  sketch.addEventListener("drop", dropCanvas);
+  function dropCanvas(e) {
+    e.preventDefault();
+    let newCoords = {
+      x: mouse_starting.x + (dragEndMouse.x - dragStartMouse.x),
+      y: mouse_starting.y + (dragEndMouse.y - dragStartMouse.y),
+    };
+    parentCtx.putImageData(imgd, newCoords.x, newCoords.y);
+    parentCtx.fillStyle = "white";
+    parentCtx.fillRect(
+      mouse_starting.x,
+      mouse_starting.y,
+      mouse.x - mouse_starting.x,
+      mouse.y - mouse_starting.y
+    );
+    newCanvas.remove();
+    const imgdata = parentCtx.getImageData(0, 0, canvas.width, canvas.height);
+    setDrawing((d) => [...d, imgdata]);
+    setProperties((p) => {
+      return { ...p, currentTool: "pencil" };
+    });
+  }
+
+  // let zoom = function (clicks) {
+  //   let pt = { x: lastX, y: lastY };
+  //   ctx.translate(pt.x, pt.y);
+  //   let factor = Math.pow(scaleFactor, clicks);
+  //   ctx.scale(factor, factor);
+  //   ctx.translate(-pt.x, -pt.y);
+  //   redraw();
+  // };
+}
