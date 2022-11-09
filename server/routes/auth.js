@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { User } = require("../models/user");
+const Token = require("../models/token");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
@@ -8,28 +9,30 @@ const { EMAIL, PASSWORD } = process.env;
 
 router.post("/login", async (req, res) => {
   try {
-    const { error } = validate(req.body);
-    if (error)
-      return res
-        .status(400)
-        .send({ success: false, message: error.details[0].message });
-
     const user = await User.findOne({ email: req.body.email });
     if (!user)
-      return res.status(401).send({ message: "Invalid Email or Password" });
-
+      return res.status(401).send({ success: false, message: "Invalid Email" });
+    if (!user.isVerified)
+      return res
+        .status(401)
+        .send({ success: false, message: "First Verify your account" });
     const validPassword = await bcrypt.compare(
       req.body.password,
       user.password
     );
     if (!validPassword)
-      return res.status(401).send({ message: "Invalid Email or Password" });
+      return res.status(401).send({ message: "Invalid Password" });
 
     const token = user.generateAuthToken();
-    res.status(200).send({ data: token, message: "logged in successfully" });
+    res.send({
+      success: true,
+      id: user._id,
+      token: token,
+      message: "logged in successfully",
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: "Internal Server Error" });
+    res.status(500).send({ success: false, message: "Internal Server Error" });
   }
 });
 
@@ -61,13 +64,22 @@ router.post("/register", async (req, res) => {
       subject: "Please confirm your account",
       html: `<h1>Email Confirmation</h1>
                 <h3>Hello ${req.body.firstName}</h3>
-                <p>Thank you for considering us. Please confirm your email by clicking on the following link</p>
+                <p>Please confirm your account by clicking on the below <em>one time</em> link</p>
                 <a href=http://localhost:8000/api/auth/verify/${redirectURL}> Click here</a>
                 </div>`,
     });
-    res.json({
-      status: 201,
-      message: "We've just sent an email... verify your account",
+    const hashCode = await bcrypt.hash(code, salt);
+    const newToken = new Token({ user: user._id, token: hashCode });
+    newToken.save((err, doc) => {
+      if (err)
+        return res
+          .status(404)
+          .json({ success: false, message: "cannot set verification token" });
+      res.json({
+        status: 201,
+        success: true,
+        message: "We've just sent an email. Verify your account",
+      });
     });
   } catch (error) {
     console.log(error);
@@ -75,10 +87,33 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get("/vreify/:id", (req, res) => {
+router.get("/verify/:id", (req, res) => {
+  const id = req.params.id.slice(0, -6);
   const code = req.params.id.slice(-6);
-  console.log(code);
+  console.log(id, code);
+  Token.findOneAndDelete({ user: id }, async (err, doc) => {
+    if (err)
+      return res
+        .status(404)
+        .json({ success: false, messsage: "cannot verify user" });
+    const check = await bcrypt.compare(code, doc.token);
+    if (!check)
+      return res
+        .status(404)
+        .json({ success: false, messsage: "cannot verify user" });
+    User.findByIdAndUpdate(id, { isVerified: true }, (err, doc) => {
+      if (err)
+        return res
+          .status(404)
+          .json({ success: false, message: "cannot update verified user" });
+      res.json({
+        success: true,
+        message: "verified successfully. Please login",
+      });
+    });
+  });
 });
+
 const getrandomOTP = () => {
   let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let otp = "";
