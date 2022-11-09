@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
 
 const tokenSchema = new mongoose.Schema({
-    owner_id: { type: String, required: true },
-    imgString: { type: String, required: true },
-    title: { type: String, required: true },
-    version: { type: Array, required: true, default: [] }
+    user: { type: String, required: true },
+    token: { type: String, required: true }
 });
 
 const Token = mongoose.model("token", tokenSchema);
