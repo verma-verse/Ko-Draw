@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
-import { addMousePosition, fillColor } from "./actions";
+import { addMousePosition, drag, fillColor } from "./actions";
 import {
   downloadImage,
   drawCircle,
@@ -246,6 +246,20 @@ export default function Board({ properties, setProperties }) {
           mouse
         );
       }
+      if (properties.currentTool === "select") {
+        node.removeEventListener("mousedown", MouseDown, false);
+        node.removeEventListener("mousemove", onPaint, false);
+        redraw(ctx);
+        drag(
+          sketchRef.current,
+          canvasRef.current,
+          mouse_starting,
+          mouse,
+          setProperties,
+          setDrawing
+        );
+        return;
+      }
       const imgd = canvasRef.current.toDataURL("image/png");
       socket.emit("canvas-data", {
         img: imgd,
@@ -303,7 +317,10 @@ export default function Board({ properties, setProperties }) {
         };
         redraw(ctx);
         drawRect(ctx, temp);
-      } else if (properties.currentTool === "text") {
+      } else if (
+        properties.currentTool === "text" ||
+        properties.currentTool === "select"
+      ) {
         const temp = {
           title: "text",
           start_x: mouse_starting.x,

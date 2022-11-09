@@ -2,7 +2,7 @@ import { BsPencil, BsCircle, BsDownload } from "react-icons/bs";
 import { BiEraser } from "react-icons/bi";
 import { GiPaintBucket } from "react-icons/gi";
 import { TfiText } from "react-icons/tfi";
-import { AiOutlineLine, AiOutlineStar } from "react-icons/ai";
+import { AiOutlineDrag, AiOutlineLine, AiOutlineStar } from "react-icons/ai";
 import { TbRectangle, TbOvalVertical } from "react-icons/tb";
 import { FaPaintBrush } from "react-icons/fa";
 import { SiPlatformdotsh } from "react-icons/si";
@@ -19,6 +19,12 @@ export default function Toolbar({ properties, setProperties }) {
     <div className="flex flex-col px-1 py-2 max-w-fit">
       <div className="flex">
         <div className="flex flex-col">
+          <Tool
+            properties={properties}
+            setProperties={setProperties}
+            title="drag"
+            component={<AiOutlineDrag />}
+          />
           <Tool
             properties={properties}
             setProperties={setProperties}
@@ -60,6 +66,12 @@ export default function Toolbar({ properties, setProperties }) {
           <Tool
             properties={properties}
             setProperties={setProperties}
+            title="select"
+            component={<MdOutlineCropFree />}
+          />
+          <Tool
+            properties={properties}
+            setProperties={setProperties}
             title="line"
             component={<AiOutlineLine />}
           />
@@ -68,12 +80,6 @@ export default function Toolbar({ properties, setProperties }) {
             setProperties={setProperties}
             title="star"
             component={<AiOutlineStar />}
-          />
-          <Tool
-            properties={properties}
-            setProperties={setProperties}
-            title="select"
-            component={<MdOutlineCropFree />}
           />
           <Tool
             properties={properties}
