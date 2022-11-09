@@ -16,14 +16,14 @@ export default function App() {
   };
   return (
     <div className="h-screen App ">
-      {/* <BrowserRouter>
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<NavBar />} ></Route>
+          <Route path="/" element={<NavBar />}></Route>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
         </Routes>
-      </BrowserRouter> */}
-      {/* <ProfileDialog /> */}
+      </BrowserRouter>
+      {/* <ProfileDialog />
       <Profile />
       {/* <Container /> */}
     </div>
