@@ -25,7 +25,7 @@ export default function Container() {
     };
   });
   return (
-    <div className="fixed flex w-screen h-screen pt-10 bg-black" ref={sizeRef}>
+    <div className="fixed flex w-screen h-screen pt-12 bg-black" ref={sizeRef}>
       <div className="z-20 h-auto mx-1 my-2 bg-white rounded-md w-fit">
         <Toolbar properties={properties} setProperties={setProperties} />
       </div>

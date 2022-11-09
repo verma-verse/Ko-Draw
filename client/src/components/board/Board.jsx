@@ -389,7 +389,7 @@ export default function Board({ properties, setProperties }) {
       clearInterval(mouseSending);
     }
     mouseSending = setInterval(() => {
-      socket.emit("mouse", { mouse, id: socket.id });
+        socket.emit("mouse", { mouse, id: socket.id, name:sessionStorage.getItem("name") || "anonymous"});
     }, 100);
 
     /*Cleanup function*/
