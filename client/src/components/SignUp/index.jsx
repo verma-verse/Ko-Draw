@@ -21,12 +21,12 @@ const Signup = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const url = `${process.env.REACT_APP_SERVER_URL}/api/users/register`;
+        const url = `${process.env.REACT_APP_SERVER_URL}/api/auth/register`;
         setLoading(true)
         axios.post(url, data)
             .then(res => {
-                navigate("/login");
                 console.log(res.message);
+                navigate("/login");
                 setLoading(false);
             })
             .catch(error => {
