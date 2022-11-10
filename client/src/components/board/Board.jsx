@@ -17,8 +17,8 @@ import {
 const socket = io.connect("http://localhost:8080");
 let mouseSending = null;
 
-export default function Board({ properties, setProperties }) {
-  const canvasRef = useRef(null);
+export default function Board({ properties, setProperties,paintRef }) {
+  // const paintRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
   const [receiving, setReceiving] = useState(false);
@@ -33,15 +33,15 @@ export default function Board({ properties, setProperties }) {
       // console.log("resized");
       let sketch = sketchRef.current;
       let sketch_style = getComputedStyle(sketch);
-      canvasRef.current.width = parseInt(
+      paintRef.current.width = parseInt(
         sketch_style.getPropertyValue("width")
       );
-      canvasRef.current.height = parseInt(
+      paintRef.current.height = parseInt(
         sketch_style.getPropertyValue("height")
       );
-      const ctx = canvasRef.current.getContext("2d");
+      const ctx = paintRef.current.getContext("2d");
       ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.fillRect(0, 0, paintRef.current.width, paintRef.current.height);
       redraw(ctx);
     };
     window.addEventListener("resize", resizeHandler);
@@ -56,7 +56,7 @@ export default function Board({ properties, setProperties }) {
     // console.log(index, drawing.length);
     if (index === -1) {
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.fillRect(0, 0, paintRef.current.width, paintRef.current.height);
     } // -2 or >=0
     else {
       // console.log(drawing[drawing.length - 1]);
@@ -68,16 +68,21 @@ export default function Board({ properties, setProperties }) {
     }
   };
   useEffect(() => {
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = paintRef.current.getContext("2d");
     redraw(ctx);
   }, [index]);
 
   const reset = () => {
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = paintRef.current.getContext("2d");
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.fillRect(0, 0, paintRef.current.width, paintRef.current.height);
     setIndex(-1);
     setDrawing([]);
+    const imgd = paintRef.current.toDataURL("image/png");
+    socket.emit("canvas-data", {
+      img: imgd,
+      id: socket.id,
+    });
   };
   const undo = () => {
     if (index === -1) return;
@@ -99,7 +104,7 @@ export default function Board({ properties, setProperties }) {
       temp.shift();
       setDrawing(temp);
     }
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = paintRef.current.getContext("2d");
     redraw(ctx);
   }, [drawing]);
 
@@ -109,7 +114,7 @@ export default function Board({ properties, setProperties }) {
       console.log("connected: " + socket.id);
     });
     socket.on("mouse", (data) => {
-      addMousePosition(data, sketchRef.current, canvasRef.current);
+      addMousePosition(data, sketchRef.current, paintRef.current);
       setUserCursors([...userCursors, data.id]);
     });
     socket.on("removeMouse", (id) => {
@@ -122,7 +127,7 @@ export default function Board({ properties, setProperties }) {
         if (receiving) return;
         setReceiving(true);
         clearInterval(interval);
-        const ctx = canvasRef.current.getContext("2d");
+        const ctx = paintRef.current.getContext("2d");
         const img = new Image();
         img.src = data.img;
         img.onload = function () {
@@ -130,8 +135,8 @@ export default function Board({ properties, setProperties }) {
             img,
             0,
             0,
-            canvasRef.current.width,
-            canvasRef.current.height
+            paintRef.current.width,
+            paintRef.current.height
           );
           const temp = drawing;
           if (index !== -2) {
@@ -141,8 +146,8 @@ export default function Board({ properties, setProperties }) {
           const imgdata = ctx.getImageData(
             0,
             0,
-            canvasRef.current.width,
-            canvasRef.current.height
+            paintRef.current.width,
+            paintRef.current.height
           );
           setReceiving(false);
           setDrawing([...temp, imgdata]);
@@ -163,7 +168,7 @@ export default function Board({ properties, setProperties }) {
   }, []);
 
   useEffect(() => {
-    let node = canvasRef.current;
+    let node = paintRef.current;
     let ctx = node.getContext("2d");
     // redraw(ctx);
     ctx.strokeStyle = properties.color;
@@ -180,11 +185,11 @@ export default function Board({ properties, setProperties }) {
       ctx.lineCap = "butt";
       ctx.lineJoin = "miter";
     } else if (properties.currentTool === "image") {
-      loadImage(canvasRef.current, socket);
+      loadImage(paintRef.current, socket);
       setProperties({ ...properties, currentTool: "pencil" });
       return;
     } else if (properties.currentTool === "paintBucket") {
-      canvasRef.current.addEventListener("click", paintPixels);
+      paintRef.current.addEventListener("click", paintPixels);
     } else if (properties.currentTool === "undo") {
       undo(ctx);
       setProperties({ ...properties, currentTool: "pencil" });
@@ -199,7 +204,7 @@ export default function Board({ properties, setProperties }) {
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
-      const imgd = canvasRef.current.toDataURL("image/png");
+      const imgd = paintRef.current.toDataURL("image/png");
       //for some reasons emitting imagedata not working..33% larger size :(
       socket.emit("canvas-data", {
         img: imgd,
@@ -242,7 +247,7 @@ export default function Board({ properties, setProperties }) {
         redraw(ctx);
         drawTextArea(
           sketchRef.current,
-          canvasRef.current,
+          paintRef.current,
           mouse_starting,
           mouse
         );
@@ -253,7 +258,7 @@ export default function Board({ properties, setProperties }) {
         redraw(ctx);
         drag(
           sketchRef.current,
-          canvasRef.current,
+          paintRef.current,
           mouse_starting,
           mouse,
           setProperties,
@@ -261,7 +266,7 @@ export default function Board({ properties, setProperties }) {
         );
         return;
       }
-      const imgd = canvasRef.current.toDataURL("image/png");
+      const imgd = paintRef.current.toDataURL("image/png");
       socket.emit("canvas-data", {
         img: imgd,
         id: socket.id,
@@ -430,7 +435,7 @@ export default function Board({ properties, setProperties }) {
           title="download"
           className="border border-white text-3xl rounded-md hover:cursor-pointer"
           onClick={() => {
-            downloadImage(canvasRef.current);
+            downloadImage(paintRef.current);
             setProperties({ ...properties, currentTool: "pencil" });
           }}
         >
@@ -440,7 +445,7 @@ export default function Board({ properties, setProperties }) {
       {
         //TODO: make dialog box for text options...
       }
-      <canvas ref={canvasRef} className=""></canvas>
+      <canvas ref={paintRef} className=""></canvas>
     </div>
   );
 }

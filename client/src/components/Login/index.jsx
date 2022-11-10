@@ -34,7 +34,7 @@ const Login = () => {
           sessionStorage.setItem("email", res.email);
           sessionStorage.setItem("dp", res.dp);
           sessionStorage.setItem("firstName", res.firstName);
-          return navigate("/");
+          return navigate("/profile");
         }
         setLoading(false);
       })

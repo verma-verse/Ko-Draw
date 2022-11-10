@@ -35,23 +35,26 @@ const Signup = () => {
     e.preventDefault();
     const url = `${process.env.REACT_APP_SERVER_URL}/api/auth/register`;
     setLoading(true);
-    axios
-      .post(url, data)
+    fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
       .then((res) => {
-        window.alert(res.data.message)
-        console.log(res.data.message);
-        navigate("/login");
+        if (!res.success) {
+          window.alert(res.message);
+        } else {
+          window.alert(res.message)
+          navigate("/login");
+        }
         setLoading(false);
       })
-      .catch((error) => {
-        if (
-          error.response &&
-          error.response.status >= 400 &&
-          error.response.status <= 500
-        ) {
-          console.log(error)
-          setError(error.message);
-        }
+      .catch((e) => {
+        console.log(e.message);
         setLoading(false);
       });
   };

@@ -3,7 +3,7 @@ import Toolbar from "../toolbar/Toolbar";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
-export default function Container() {
+export default function Container({paintRef}) {
   const sizeRef = useRef(null);
   const [properties, setProperties] = useState({
     currentTool: "pencil",
@@ -30,7 +30,7 @@ export default function Container() {
         <Toolbar properties={properties} setProperties={setProperties} />
       </div>
       <div className="z-20 w-full h-auto mx-1 my-2 rounded-md">
-        <Board properties={properties} setProperties={setProperties} />
+        <Board properties={properties} setProperties={setProperties} paintRef={paintRef}/>
       </div>
     </div>
   );

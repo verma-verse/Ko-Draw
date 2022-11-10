@@ -22,12 +22,6 @@ export default function Toolbar({ properties, setProperties }) {
           <Tool
             properties={properties}
             setProperties={setProperties}
-            title="drag"
-            component={<AiOutlineDrag />}
-          />
-          <Tool
-            properties={properties}
-            setProperties={setProperties}
             title="pencil"
             component={<BsPencil />}
           />

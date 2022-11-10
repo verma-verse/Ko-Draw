@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import NavBar from "./components/Navbar/NavBar";
 import Container from "./components/container/Container";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -10,6 +10,7 @@ import Profile from "./components/profile/Profile";
 export default function App() {
   const user = localStorage.getItem("token");
   const [isShowLogin, setIsShowLogin] = useState(null);
+  const paintRef=useRef();
   const handleLoginClick = () => {
     setIsShowLogin("login");
   };
@@ -17,14 +18,14 @@ export default function App() {
     <div className="h-screen App ">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<NavBar />}></Route>
+          <Route path="/" element={<><NavBar paintRef={paintRef}/><Container paintRef={paintRef}/></>}></Route>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile/>}/>
         </Routes>
       </BrowserRouter>
       {/* <ProfileDialog /> */}
       {/* <Profile /> */}
-      <Container />
     </div>
   );
 }
