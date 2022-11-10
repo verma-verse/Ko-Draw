@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { BiUndo, BiRedo, BiReset, BiDownload } from "react-icons/bi"
 import io from "socket.io-client";
 import { addMousePosition, drag, fillColor } from "./actions";
 import {
@@ -389,7 +390,7 @@ export default function Board({ properties, setProperties }) {
       clearInterval(mouseSending);
     }
     mouseSending = setInterval(() => {
-        socket.emit("mouse", { mouse, id: socket.id, name:sessionStorage.getItem("name") || "anonymous"});
+      socket.emit("mouse", { mouse, id: socket.id, name: sessionStorage.getItem("name") || "anonymous" });
     }, 100);
 
     /*Cleanup function*/
@@ -403,35 +404,39 @@ export default function Board({ properties, setProperties }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      {/* <div className="flex justify-around py-1 text-white bg-gray-700">
+      <div className="absolute right-10 top-14 flex justify-between w-1/5 py-1 bg-white">
         <span
-          className="border border-white rounded-md hover:cursor-pointer"
+          title="reset"
+          className="border border-white text-3xl rounded-md hover:cursor-pointer"
           onClick={reset}
         >
-          reset
+          <BiReset />
         </span>
         <span
-          className="border border-white rounded-md hover:cursor-pointer"
+          title="undo"
+          className="border border-white text-3xl rounded-md hover:cursor-pointer"
           onClick={undo}
         >
-          undo
+          <BiUndo />
         </span>
         <span
-          className="border border-white rounded-md hover:cursor-pointer"
+          title="redo"
+          className="border border-white text-3xl rounded-md hover:cursor-pointer"
           onClick={redo}
         >
-          redo
+          <BiRedo />
         </span>
         <span
-          className="border border-white rounded-md hover:cursor-pointer"
+          title="download"
+          className="border border-white text-3xl rounded-md hover:cursor-pointer"
           onClick={() => {
             downloadImage(canvasRef.current);
             setProperties({ ...properties, currentTool: "pencil" });
           }}
         >
-          download
+          <BiDownload />
         </span>
-      </div> */}
+      </div>
       {
         //TODO: make dialog box for text options...
       }

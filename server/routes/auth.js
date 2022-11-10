@@ -55,7 +55,8 @@ router.post("/register", async (req, res) => {
   const salt = await bcrypt.genSalt(Number(process.env.SALT));
   const hashPassword = await bcrypt.hash(req.body.password, salt);
   try {
-    const user = await new User({ ...req.body, password: hashPassword }).save();
+    const { firstName, lastName, email, image } = req.body
+    const user = await new User({ firstName, lastName, email, dp: image, password: hashPassword }).save();
     const code = getrandomOTP();
     const redirectURL = user._id.toString() + code;
     let transport = nodemailer.createTransport({

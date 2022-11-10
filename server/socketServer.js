@@ -12,6 +12,21 @@ app.use(function (req, res, next) {
 });
 
 io.on("connection", (socket) => {
+  const users = [];
+  for (let [id, socket] of io.of("/").sockets) {
+    users.push({
+      userID: id,
+      username: socket.username,
+    });
+  }
+  socket.emit("users", users);  //emitting list of all connected users to the connected user
+
+  // notify existing users
+  socket.broadcast.emit("user connected", {
+    userID: socket.id,
+    // username: socket.username,
+  });
+
   socket.on("canvas-data", (data) => {
     socket.broadcast.emit("canvas-data", data);
   });

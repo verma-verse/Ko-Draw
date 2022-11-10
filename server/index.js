@@ -10,8 +10,6 @@ const paintRoutes = require("./routes/paint");
 connection();
 
 // middlewares
-app.use(express.json());
-app.use(cors());
 app.use(function (req, res, next) {
   //CORS
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
@@ -20,6 +18,7 @@ app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
   next();
 });
+app.use(express.json());
 
 // routes
 app.use("/api/user", userRoutes);

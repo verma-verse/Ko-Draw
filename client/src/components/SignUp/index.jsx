@@ -3,13 +3,16 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./styles.module.css";
 import Spinner from "../Utilities/Spinner";
+import { useRef } from "react";
 const Signup = () => {
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
+    image: "",
   });
+  const imageRef = useRef();
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -17,7 +20,17 @@ const Signup = () => {
   const handleChange = ({ currentTarget: input }) => {
     setData({ ...data, [input.name]: input.value });
   };
-
+  function handleImage() {         //function to handle the image input
+    const image = imageRef.current.files[0]
+    if (image && image['type'].split('/')[0] === 'image') {  //continue only if file is an image.
+      let fileReader = new FileReader()
+      fileReader.onload = fileLoadedEvent => {
+        let srcData = fileLoadedEvent.target.result; // <--- data: base64
+        setData({ ...data, image: srcData })
+      }
+      fileReader.readAsDataURL(image);
+    }
+  }
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = `${process.env.REACT_APP_SERVER_URL}/api/auth/register`;
@@ -25,6 +38,7 @@ const Signup = () => {
     axios
       .post(url, data)
       .then((res) => {
+        window.alert(res.data.message)
         console.log(res.data.message);
         navigate("/login");
         setLoading(false);
@@ -35,7 +49,8 @@ const Signup = () => {
           error.response.status >= 400 &&
           error.response.status <= 500
         ) {
-          setError(error.response.data.message);
+          console.log(error)
+          setError(error.message);
         }
         setLoading(false);
       });
@@ -92,6 +107,13 @@ const Signup = () => {
                 value={data.password}
                 required
                 className={styles.input}
+              />
+              <input
+                type="file"
+                required
+                className={styles.input}
+                onChange={handleImage}
+                ref={imageRef}
               />
               {error && <div className={styles.error_msg}>{error}</div>}
               {loading ? (

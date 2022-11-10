@@ -17,8 +17,6 @@ const Login = () => {
     e.preventDefault();
     const url = `${process.env.REACT_APP_SERVER_URL}/api/auth/login`;
     setLoading(true);
-    // console.log(email,password)
-    //FIXME: Deal with cors man..
     fetch(url, {
       method: "POST",
       credentials: "include",
@@ -29,18 +27,16 @@ const Login = () => {
     })
       .then((res) => res.json())
       .then((res) => {
-        if (res.status === 400) {
-          return window.alert("Error: " + res.error);
-        } else if (res.status === 404) {
-          return window.alert(res.message);
-        } else if (res.status === 200) {
+        if (!res.success) {
+          window.alert(res.message);
+        } else {
           sessionStorage.setItem("user", res.id);
           sessionStorage.setItem("email", res.email);
           sessionStorage.setItem("dp", res.dp);
           sessionStorage.setItem("firstName", res.firstName);
-          setLoading(false);
-          navigate("/");
+          return navigate("/");
         }
+        setLoading(false);
       })
       .catch((e) => {
         console.log(e.message);
