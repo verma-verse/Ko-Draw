@@ -25,7 +25,7 @@ const Signup = () => {
     axios
       .post(url, data)
       .then((res) => {
-        console.log(res.message);
+        console.log(res.data.message);
         navigate("/login");
         setLoading(false);
       })

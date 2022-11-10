@@ -24,8 +24,8 @@ export default function App() {
         </Routes>
       </BrowserRouter>
       {/* <ProfileDialog />
-      <Profile />
-      {/* <Container /> */}
+      <Profile />*/}
+      <Container />
     </div>
   );
 }

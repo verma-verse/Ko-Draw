@@ -17,25 +17,33 @@ const Login = () => {
     e.preventDefault();
     const url = `${process.env.REACT_APP_SERVER_URL}/api/auth/login`;
     setLoading(true);
-    axios.defaults.withCredentials = true;
-    axios
-      .post(url, data)
+    // console.log(email,password)
+    //FIXME: Deal with cors man..
+    fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
       .then((res) => {
-        sessionStorage.setItem("user", res.id);
-        sessionStorage.setItem("email", res.email);
-        sessionStorage.setItem("dp", res.dp);
-        sessionStorage.setItem("firstName", res.firstName);
-        setLoading(false);
-        navigate("/");
-      })
-      .catch((error) => {
-        if (
-          error.response &&
-          error.response.status >= 400 &&
-          error.response.status <= 500
-        ) {
-          setError(error.response.data.message);
+        if (res.status === 400) {
+          return window.alert("Error: " + res.error);
+        } else if (res.status === 404) {
+          return window.alert(res.message);
+        } else if (res.status === 200) {
+          sessionStorage.setItem("user", res.id);
+          sessionStorage.setItem("email", res.email);
+          sessionStorage.setItem("dp", res.dp);
+          sessionStorage.setItem("firstName", res.firstName);
+          setLoading(false);
+          navigate("/");
         }
+      })
+      .catch((e) => {
+        console.log(e.message);
         setLoading(false);
       });
   };
