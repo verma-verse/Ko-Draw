@@ -8,6 +8,7 @@ require("dotenv").config();
 const { EMAIL, PASSWORD } = process.env;
 
 router.post("/login", async (req, res) => {
+  console.log(req.body);
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user)
@@ -97,7 +98,6 @@ router.post("/register", async (req, res) => {
 router.get("/verify/:id", (req, res) => {
   const id = req.params.id.slice(0, -6);
   const code = req.params.id.slice(-6);
-  console.log(id, code);
   Token.findOneAndDelete({ user: id }, async (err, doc) => {
     if (err)
       return res
