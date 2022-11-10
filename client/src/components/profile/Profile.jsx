@@ -5,6 +5,7 @@ import { BsFillPencilFill } from 'react-icons/bs'
 import styled from "styled-components";
 import { popularProducts } from "./data";
 import Photo from "./Photo"
+import NavBar from '../Navbar/NavBar';
 
 const Container = styled.div`
     padding: 20px;
@@ -15,27 +16,26 @@ const Container = styled.div`
 export default function Profile({ items }) {
     const [user, setUser] = useState("Anonymous")
     const [mail, setmail] = useState("anonymous@gmail.com")
+    const [photo, setdp] = useState(null)
     useEffect(() => {
-        const name = sessionStorage.getItem("user");
+        const name = sessionStorage.getItem("firstName");
         const email = sessionStorage.getItem("email") || "anonymous@gmail.com";
+        const im = sessionStorage.getItem("dp")
 
         if (name) {
             setUser(name);
             setmail(email);
-
+            setdp(im);
 
         }
     }, [])
     return (
         <>
+            <NavBar />
             <div className="w-full  bg-white shadow-2xl h-screen border-4 border-black-500/50 ... rounded-2xl relative">
-                <div className='flex items-center justify-center w-full bg-green-300 h-11' >
-                    <h1 className='text-2xl font-black'>
-                        Ko Draw  Welcomes You !! {user}...</h1>
-                </div>
                 <div className='flex h-full'>
                     <div className='flex flex-col w-1/4 shadow-2xl bg-white-300'>
-                        <img src='./300Logo.png' className='items-center rounded-full shadow-xl'></img>
+                        <img src={photo} className='items-center mt-8 rounded-full shadow-xl h-96'></img>
                         <div className='mt-8 ml-8 text-2xl'>
                             <BsPersonCircle />
                             <h1 className=''>{user}</h1>
@@ -52,7 +52,7 @@ export default function Profile({ items }) {
 
                         </div>
                     </div>
-                    <div className='flex justify-between w-3/4 shadow-xl bg-slate-300'>
+                    <div className='flex justify-between w-3/4 overflow-y-auto shadow-xl bg-slate-300'>
                         <Container>
                             {popularProducts.map((item) => (
                                 <Photo item={item} key={item.id} />
