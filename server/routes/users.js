@@ -29,4 +29,22 @@ router.delete("/:id", (req, res) => {
     })
 })
 
+//TODO: do some async await to fill the data array..
+router.get("/history/:id",(req,res)=>{
+    const id=req.params.id;
+    let data=[];
+    Paintuser.find({user_id:id},async (err,doc)=>{
+        if(err)
+            return res.status(404).json({success:false,message:"cannot get paints now.."})
+        doc.forEach(paint => {
+            Paint.findById(paint.paint_id,(err,result)=>{
+                console.log(result)
+                if(!err)
+                    data=[...data,{imgString:result.imgString,title:result.title}]
+            })
+        })
+        res.json({success:true,data})
+    })
+})
+
 module.exports = router;

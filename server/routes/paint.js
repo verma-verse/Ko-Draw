@@ -2,6 +2,9 @@ const router = require("express").Router();
 const Paint = require("./../models/paint")
 const Paintuser = require("./../models/paintuser")
 const { User } = require("./../models/user")
+const nodemailer = require('nodemailer')
+require("dotenv").config();
+const { EMAIL, PASSWORD } = process.env;
 
 router.post("/add/:id", async (req, res) => {
     const id = req.params.id
@@ -27,7 +30,7 @@ router.post("/add/:id", async (req, res) => {
             relation.save((err, docq) => {
                 if (err)
                     return res.status(404).json({ success: false, message: "cannot save data" })
-                res.json({ success: true, message: "paint saved succssfully", paint: result.id });
+                res.json({ success: true, message: "paint saved succssfully", paint: result.id ,title:result.title});
             })
         })
 
@@ -47,4 +50,39 @@ router.delete("/:id", (req, res) => {
     })
 })
 
+router.post("/share",(req,res)=>{
+    const {addresses,paintId,title,owner}=req.body
+    let transport = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: EMAIL,
+          pass: PASSWORD,
+        },
+      });
+    addresses.forEach(email => {
+        User.findOne({email:email},(err,user)=>{
+            if(!err){
+                Paintuser.findOne({user_id:user._id,paint_id:paintId},(err,result)=>{
+                    if(!result){
+                        new Paintuser({user_id:user._id,paint_id:paintId}).save((err,doc)=>{
+                            if(err)
+                                return res.status(404).json({success:false,message:"cannot invite user"})
+                            transport.sendMail({
+                                from: EMAIL,
+                                to: email,
+                                subject: "Became a contributor in paint",
+                                html: `<h1>Paint information</h1>
+                                        <h3>Hello ${user.firstName}</h3>
+                                        <div>You are added as a contributer to a paint <em>${title}</em> by <em>${owner}</em><br/>
+                                        <a href="http://localhost:3000/profile" >Go to my profile</a>
+                                        </div>`,
+                            });
+                        })
+                    }
+                })
+            }
+        })
+    });
+    res.json({success:true,message:"invited successfully"})
+})
 module.exports = router;

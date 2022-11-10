@@ -4,11 +4,13 @@ import { HiUserCircle } from "react-icons/hi";
 import ShareOptions from "../Utilities/ShareOptions";
 import UserImage from "../Utilities/UserImage";
 import ProfileDialog from "../profile/ProfileDialog";
-function NavBar() {
+function NavBar({ paintRef }) {
+  const [toggle, setToggle] = useState(false);
   const [shareOp, setShareOp] = useState(false);
   const [name, setName] = useState(null);
   const [dp, setDp] = useState(null);
-  const [toggle, setToggle] = useState(false);
+  const [tokenOp, showTokenOp] = useState(false)
+
   const showShareOptions = () => {
     setShareOp((f) => !f);
   };
@@ -19,13 +21,16 @@ function NavBar() {
     if (photo) setDp(photo);
   }, []);
   return (
-    <div className="absolute top-0 left-0 right-0 z-50 flex justify-between h-12 bg-white">
+    <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between h-12 bg-white">
+      {tokenOp && <div className="absolute top-0 left-0 z-50 grid w-screen h-screen bg-gray-500 place-items-center opacity-60">
+        <input className="px-2 py-1 text-2xl font-bold text-blue-500 bg-white border-2 border-blue-600 rounded-md" type="text" placeholder="Enter token here" />
+      </div>}
       <div className="flex items-center justify-start w-1/2">
         <div className="relative inline-block ml-10 text-black group">
           <button className="px-2 text-black border rounded-md text-md">
             File
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               New
             </a>
@@ -35,13 +40,14 @@ function NavBar() {
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Save As
             </a>
+            <button onClick={() => showTokenOp(f => !f)} className="block px-4 py-3 text-black hover:bg-white">Join with token</button>
           </div>
         </div>
         <div className="relative inline-block ml-10 text-black group">
           <button className="px-2 text-black border rounded-md text-md">
             Edit
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Undo
             </a>
@@ -57,7 +63,7 @@ function NavBar() {
           <button className="px-2 text-black border rounded-md text-md">
             Insert
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Shapes
             </a>
@@ -73,7 +79,7 @@ function NavBar() {
           <button className="px-2 text-black border rounded-md text-md">
             Draw
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Star
             </a>
@@ -89,7 +95,7 @@ function NavBar() {
           <button className="px-2 text-black border rounded-md text-md">
             View
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Zoom
             </a>
@@ -105,7 +111,7 @@ function NavBar() {
           <button className="px-2 text-black border rounded-md text-md">
             Help
           </button>
-          <div className="absolute z-50 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
+          <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               A
             </a>
@@ -118,8 +124,10 @@ function NavBar() {
           </div>
         </div>
       </div>
-
-      {shareOp && <ShareOptions />}
+      <div className="w-full text-center">
+        <input className="py-1 text-2xl text-center bg-gray-200" type="text" placeholder="Untitled" default="Untitled" />
+      </div>
+      {shareOp && <ShareOptions paintRef={paintRef} setShareOp={setShareOp} />}
       <div className="flex items-center justify-end w-full">
         {!name ? (
           <div className="mr-10 hover:cursor-pointer">
