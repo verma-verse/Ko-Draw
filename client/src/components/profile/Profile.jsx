@@ -18,15 +18,13 @@ export default function Profile({ items }) {
     const [mail, setmail] = useState("anonymous@gmail.com")
     const [photo, setdp] = useState(null)
     useEffect(() => {
-        const name = sessionStorage.getItem("firstName");
-        const email = sessionStorage.getItem("email") || "anonymous@gmail.com";
         const im = sessionStorage.getItem("dp")
-
+        const name = sessionStorage.getItem("user");
+        const email = sessionStorage.getItem("email");
         if (name) {
             setUser(name);
-            setmail(email);
-            setdp(im);
-
+            if (mail)
+                setmail(email);
         }
     }, [])
     return (

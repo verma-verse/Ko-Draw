@@ -4,8 +4,9 @@ const Token = require("../models/token");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+const jwt = require('jsonwebtoken')
 
-const { EMAIL, PASSWORD } = process.env;
+const { EMAIL, PASSWORD, JWTPRIVATEKEY } = process.env;
 
 router.post("/login", async (req, res) => {
   console.log(req.body);
@@ -44,6 +45,31 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/check", async (req, res) => {
+  const token = await req.cookies.jwtCookie
+  if (token) {
+    jwt.verify(token, JWTPRIVATEKEY, async (err, decodedToken) => {
+      if (err) {
+        console.log(err.message)
+        return res.status(404).send({ success: false, message: "Token expired" });
+      }
+      User.findById(decodedToken._id, (err, doc) => {
+        if (err)
+          return res.status(400).send({ success: false, message: "Token expired" });
+        res.json({
+          success: true,
+          id: doc._id,
+          firstName: doc.firstName,
+          email: doc.email,
+          dp: doc.dp,
+        });
+      })
+    })
+  }
+  else {
+    res.json({ status: 404, user: "" })
+  }
+})
 router.post("/register", async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (user)
