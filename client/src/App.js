@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./styles.css";
 import NavBar from "./components/Navbar/NavBar";
 import Container from "./components/container/Container";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -16,16 +15,16 @@ export default function App() {
   };
   return (
     <div className="h-screen App ">
-      {/* <BrowserRouter> */}
-      {/* <Routes>
-          <Route path="/" element={<NavBar />} ></Route>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<NavBar />}></Route>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
         </Routes>
-      </BrowserRouter> */}
+      </BrowserRouter>
       {/* <ProfileDialog /> */}
-      <Profile />
-      {/* <Container /> */}
+      {/* <Profile /> */}
+      <Container />
     </div>
   );
 }

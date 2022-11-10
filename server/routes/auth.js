@@ -8,6 +8,7 @@ require("dotenv").config();
 const { EMAIL, PASSWORD } = process.env;
 
 router.post("/login", async (req, res) => {
+  console.log(req.body);
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user)
@@ -24,10 +25,17 @@ router.post("/login", async (req, res) => {
       return res.status(401).send({ message: "Invalid Password" });
 
     const token = user.generateAuthToken();
-    res.send({
+    //TODO: check if cookie is working...
+    res.cookie("jwtCookie", token, {
+      httpOnly: false,
+      maxAge: 3 * 24 * 60 * 60 * 1000,
+    });
+    res.json({
       success: true,
       id: user._id,
-      token: token,
+      firstName: user.firstName,
+      email: user.email,
+      dp: user.dp,
       message: "logged in successfully",
     });
   } catch (error) {
@@ -90,7 +98,6 @@ router.post("/register", async (req, res) => {
 router.get("/verify/:id", (req, res) => {
   const id = req.params.id.slice(0, -6);
   const code = req.params.id.slice(-6);
-  console.log(id, code);
   Token.findOneAndDelete({ user: id }, async (err, doc) => {
     if (err)
       return res

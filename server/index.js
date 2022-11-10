@@ -5,27 +5,26 @@ const cors = require("cors");
 const connection = require("./db");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
-const paintRoutes = require("./routes/paint")
+const paintRoutes = require("./routes/paint");
 // database connection
 connection();
 
 // middlewares
 app.use(express.json());
 app.use(cors());
+app.use(function (req, res, next) {
+  //CORS
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods", ["GET", "PUT", "POST", "DELETE"]);
+  res.header("Access-Control-Allow-Headers", "Content-type");
+  res.header("Access-Control-Allow-Credentials", true);
+  next();
+});
 
 // routes
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/paint", paintRoutes)
-
-app.use(function (req, res, next) {
-  //CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-type");
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  next();
-});
+app.use("/api/paint", paintRoutes);
 
 app.get("/", (req, res) => res.send("Server is running"));
 const PORT = process.env.PORT || 8000;
