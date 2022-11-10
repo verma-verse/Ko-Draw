@@ -17,13 +17,11 @@ export default function Profile({ items }) {
     const [mail, setmail] = useState("anonymous@gmail.com")
     useEffect(() => {
         const name = sessionStorage.getItem("user");
-        const email = sessionStorage.getItem("email") || "anonymous@gmail.com";
-
+        const email = sessionStorage.getItem("email");
         if (name) {
             setUser(name);
+        if(mail)
             setmail(email);
-
-
         }
     }, [])
     return (

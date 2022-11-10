@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const cookieParser=require('cookie-parser')
 const connection = require("./db");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
@@ -10,6 +11,7 @@ const paintRoutes = require("./routes/paint");
 connection();
 
 // middlewares
+app.use(cookieParser())
 app.use(function (req, res, next) {
   //CORS
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");

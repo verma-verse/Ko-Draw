@@ -18,6 +18,16 @@ export default function ProfileDialog() {
         if (photo) setDp(photo);
         if (gmail) setmail(gmail);
     }, []);
+    // useEffect(()=>{
+    //     if(!name)
+    // },[name])
+    const logout=()=>{
+        sessionStorage.clear();
+        document.cookie = "jwtCookie" + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        setName(null)
+        setDp(null)
+        setmail(null)
+    }
     return (
         <>
             <div className="absolute z-50 w-1/5 bg-white shadow-2xl right-2 top-14 rounded-2xl">
@@ -32,11 +42,10 @@ export default function ProfileDialog() {
                 <hr></hr>
                 <div className='m-2'>
                     <div className='flex justify-around'>
-                        <button className='px-4 py-2 m-4 bg-white border shadow-inner rounded-xl border-slate-300 hover:border-indigo-300 '>Logout</button>
+                        <button onClick={logout} className='px-4 py-2 m-4 bg-white border shadow-inner rounded-xl border-slate-300 hover:border-indigo-300 '>Logout</button>
                         <button className='px-4 py-2 m-4 bg-white border shadow-inner border-slate-300 hover:border-indigo-300 rounded-xl'>Help</button>
                     </div>
                 </div>
-
             </div>
         </>
     )
