@@ -4,6 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "./styles.module.css";
 import Spinner from "../Utilities/Spinner";
 import { useRef } from "react";
+import { GiCrossedBones } from "react-icons/gi";
+
+
 const Signup = () => {
   const [data, setData] = useState({
     firstName: "",
@@ -30,6 +33,9 @@ const Signup = () => {
       }
       fileReader.readAsDataURL(image);
     }
+  }
+  const backtohome = () => {
+    navigate('./profile');
   }
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -73,8 +79,13 @@ const Signup = () => {
             </Link>
           </div>
           <div className={styles.right}>
+            <div className="" onClick={backtohome}>
+              <GiCrossedBones className="" />
+            </div>
             <form className={styles.form_container} onSubmit={handleSubmit}>
               <h1>Create Account</h1>
+
+
               <input
                 type="text"
                 placeholder="First Name"

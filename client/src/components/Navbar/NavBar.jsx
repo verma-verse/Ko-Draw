@@ -4,7 +4,9 @@ import { HiUserCircle } from "react-icons/hi";
 import ShareOptions from "../Utilities/ShareOptions";
 import UserImage from "../Utilities/UserImage";
 import ProfileDialog from "../profile/ProfileDialog";
+import { useNavigate } from 'react-router-dom';
 function NavBar({ paintRef }) {
+  const navigate = useNavigate()
   const [toggle, setToggle] = useState(false);
   const [shareOp, setShareOp] = useState(false);
   const [name, setName] = useState(null);
@@ -14,6 +16,11 @@ function NavBar({ paintRef }) {
   const showShareOptions = () => {
     setShareOp((f) => !f);
   };
+
+  const backtohome = () => {
+    console.log("event is fired")
+    navigate('/profile');
+  }
   useEffect(() => {
     const user = sessionStorage.getItem("firstName");
     const photo = sessionStorage.getItem("dp");
@@ -23,7 +30,13 @@ function NavBar({ paintRef }) {
   return (
     <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between h-12 bg-white">
       {tokenOp && <div className="absolute top-0 left-0 z-50 grid w-screen h-screen bg-gray-500 place-items-center opacity-60">
-        <input className="px-2 py-1 text-2xl font-bold text-blue-500 bg-white border-2 border-blue-600 rounded-md" type="text" placeholder="Enter token here" />
+        <div className="p-8 bg-white rounded-lg">
+          <input className="px-2 py-1 text-2xl font-bold text-blue-500 bg-white border-2 border-blue-600 rounded-md" type="text" placeholder="Enter token here" />
+          <div className="flex justify-around mt-4">
+            <button className="px-6 py-1 text-xl text-white bg-blue-500 rounded-md hover:bg-blue-700 ">Join</button>
+            <button className="px-3 py-1 text-xl text-white bg-blue-500 rounded-md hover:bg-blue-700" onClick={backtohome}>Cancel</button>
+          </div>
+        </div >
       </div>}
       <div className="flex items-center justify-start w-1/2">
         <div className="relative inline-block ml-10 text-black group">

@@ -21,7 +21,7 @@ export default function ProfileDialog() {
     // useEffect(()=>{
     //     if(!name)
     // },[name])
-    const logout=()=>{
+    const logout = () => {
         sessionStorage.clear();
         document.cookie = "jwtCookie" + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         setName(null)

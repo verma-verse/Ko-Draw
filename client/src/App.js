@@ -7,24 +7,24 @@ import Login from "./components/Login";
 import Profile from "./components/profile/Profile";
 
 export default function App() {
-  const [title,setTitle]=useState(null)
+  const [title, setTitle] = useState(null)
   const paintRef = useRef();
-  useEffect(()=>{
-    const user=sessionStorage.getItem("user")
-    if(!user){
-      fetch(`${process.env.REACT_APP_SERVER_URL}/api/auth/check`,{              
+  useEffect(() => {
+    const user = sessionStorage.getItem("user")
+    if (!user) {
+      fetch(`${process.env.REACT_APP_SERVER_URL}/api/auth/check`, {
         credentials: 'include',
       })
-    .then((res)=>res.json())
-    .then((res)=>{
-        if(res.success){
-          sessionStorage.setItem("user",res.id)
-          sessionStorage.setItem("firstName",res.firstName)
-          sessionStorage.setItem("email",res.email)
-          sessionStorage.setItem("dp",res.dp)
-        }
-    })
-    .catch((e)=>console.log(e))
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success) {
+            sessionStorage.setItem("user", res.id)
+            sessionStorage.setItem("firstName", res.firstName)
+            sessionStorage.setItem("email", res.email)
+            sessionStorage.setItem("dp", res.dp)
+          }
+        })
+        .catch((e) => console.log(e))
     }
   })
 

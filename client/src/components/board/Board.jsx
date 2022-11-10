@@ -17,7 +17,7 @@ import {
 const socket = io.connect("http://localhost:8080",{paintId:sessionStorage.getItem("paintId"),userId:sessionStorage.getItem("user")});
 let mouseSending = null;
 
-export default function Board({ properties, setProperties,paintRef }) {
+export default function Board({ properties, setProperties, paintRef }) {
   // const paintRef = useRef(null);
   const sketchRef = useRef(null);
   const [drawing, setDrawing] = useState([]);
@@ -410,31 +410,31 @@ export default function Board({ properties, setProperties,paintRef }) {
 
   return (
     <div className="w-full h-full" ref={sketchRef}>
-      <div className="absolute right-10 top-14 flex justify-between w-1/5 py-1 bg-white">
+      <div className="absolute flex justify-between w-1/5 py-1 bg-white right-10 top-14">
         <span
           title="reset"
-          className="border border-white text-3xl rounded-md hover:cursor-pointer"
+          className="text-3xl border border-white rounded-md hover:cursor-pointer"
           onClick={reset}
         >
           <BiReset />
         </span>
         <span
           title="undo"
-          className="border border-white text-3xl rounded-md hover:cursor-pointer"
+          className="text-3xl border border-white rounded-md hover:cursor-pointer"
           onClick={undo}
         >
           <BiUndo />
         </span>
         <span
           title="redo"
-          className="border border-white text-3xl rounded-md hover:cursor-pointer"
+          className="text-3xl border border-white rounded-md hover:cursor-pointer"
           onClick={redo}
         >
           <BiRedo />
         </span>
         <span
           title="download"
-          className="border border-white text-3xl rounded-md hover:cursor-pointer"
+          className="text-3xl border border-white rounded-md hover:cursor-pointer"
           onClick={() => {
             downloadImage(paintRef.current);
             setProperties({ ...properties, currentTool: "pencil" });
