@@ -6,6 +6,7 @@ import Signup from "./components/SignUp";
 import Login from "./components/Login";
 import ProfileDialog from "./components/profile/ProfileDialog";
 import Profile from "./components/profile/Profile";
+import TextEditor from "./components/texteditor/TextEditor";
 
 export default function App() {
   const user = localStorage.getItem("token");
