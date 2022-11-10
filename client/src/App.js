@@ -23,8 +23,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter>
-      {/* <ProfileDialog />
-      <Profile />*/}
+      {/* <ProfileDialog /> */}
+      {/* <Profile /> */}
       <Container />
     </div>
   );

@@ -85,15 +85,23 @@ export function fillColor(canvas, x, y, new_color) {
   });
 }
 
+
+
 export function addMousePosition(data, parent, canvas) {
   // console.log(data);
   let node = document.getElementById(data.id);
   if (!node) {
-    node = document.createElement("span");
+    node = document.createElement('img');
+    node.src="cursor.png"
     node.id = data.id;
   }
-  node.style.backgroundColor = "black";
-  node.style.color = "white";
+  const name=data.name || "anonymous"
+  node.title=name
+  node.style.width="20px"
+  node.style.height="25px"
+  // node.style.backgroundColor = "#FF0000";
+  node.style.color="#FF0000"
+  // node.style.color = "white";
   node.style.position = "absolute";
   const pos = canvas.getBoundingClientRect();
   node.style.left = pos.left + data.mouse.x + "px";
@@ -179,4 +187,13 @@ export function drag(
   //   ctx.translate(-pt.x, -pt.y);
   //   redraw();
   // };
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
