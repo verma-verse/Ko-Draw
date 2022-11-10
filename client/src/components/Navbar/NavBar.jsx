@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { HiUserCircle } from "react-icons/hi";
 import ShareOptions from "../Utilities/ShareOptions";
 import UserImage from "../Utilities/UserImage";
+import ProfileDialog from "../profile/ProfileDialog";
 function NavBar() {
   const [shareOp, setShareOp] = useState(false);
   const [name, setName] = useState(null);
   const [dp, setDp] = useState(null);
+  const [toggle, setToggle] = useState(false);
   const showShareOptions = () => {
     setShareOp((f) => !f);
   };
@@ -132,12 +134,13 @@ function NavBar() {
           </div>
         )}
         {dp ? (
-          <UserImage data={dp} />
+          <UserImage toggle={toggle} setToggle={setToggle} data={dp} />
         ) : (
-          <div className="mr-10 text-3xl hover:cursor-pointer">
+          <div onClick={() => setToggle(f => !f)} className="mr-10 text-3xl hover:cursor-pointer">
             <HiUserCircle />
           </div>
         )}
+        {toggle && <ProfileDialog />}
       </div>
     </div>
   );
