@@ -85,4 +85,14 @@ router.post("/share",(req,res)=>{
     });
     res.json({success:true,message:"invited successfully"})
 })
+
+router.get("/contributors/:id",(req,res)=>{
+    const id=req.params.id;
+    Paintuser.find({paint_id:id},(err,doc)=>{
+        if(err)
+            return res.status(404).json({success:false,message:"no users found",users:[]})
+        res.json({success:true,users:doc})
+    })
+})
+
 module.exports = router;

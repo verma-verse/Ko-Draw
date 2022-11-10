@@ -11,7 +11,16 @@ app.use(function (req, res, next) {
   next();
 });
 
+//a map between paintId and roomId
+const mapping={}; //paintId:[roomId,count]
 io.on("connection", (socket) => {
+  if(socket.paintId && socket.userID && mapping[socket.paintId]){
+    socket.join(mapping[socket.paintId][0])
+    mapping[socket.paintId][1]=mapping[socket.paintId][1]+1;
+  }
+  else
+    mapping[socket.paintId]=[socket.id,0]
+
   const users = [];
   for (let [id, socket] of io.of("/").sockets) {
     users.push({
@@ -22,20 +31,21 @@ io.on("connection", (socket) => {
   socket.emit("users", users);  //emitting list of all connected users to the connected user
 
   // notify existing users
-  socket.broadcast.emit("user connected", {
+  socket.broadcast.to(mapping[socket.paintId][0]).emit('user connected',{
     userID: socket.id,
-    // username: socket.username,
   });
 
   socket.on("canvas-data", (data) => {
-    socket.broadcast.emit("canvas-data", data);
+    socket.broadcast.to(mapping[socket.paintId][0]).emit("canvas-data", data);
   });
   socket.on("mouse", (data) => {
     // console.log(data);
-    socket.broadcast.emit("mouse", data);
+    socket.broadcast.to(mapping[socket.paintId][0]).emit("mouse", data);
   });
   socket.on("disconnect", function () {
-    socket.broadcast.emit("removeMouse", socket.id);
+    mapping[socket.paintId][1]=mapping[socket.paintId][1]-1;
+    if(mapping[socket.paintId][1]==0) delete mapping[socket.paintId]
+    socket.broadcast.to(mapping[socket.paintId][0]).emit("removeMouse", socket.id);
   });
 });
 

@@ -14,7 +14,7 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
-const socket = io.connect("http://localhost:8080");
+const socket = io.connect("http://localhost:8080",{paintId:sessionStorage.getItem("paintId"),userId:sessionStorage.getItem("user")});
 let mouseSending = null;
 
 export default function Board({ properties, setProperties,paintRef }) {
@@ -154,6 +154,7 @@ export default function Board({ properties, setProperties,paintRef }) {
         };
       }, 200);
     });
+    
     return () => {
       userCursors.forEach((val, idx) => {
         const el = document.getElementById(val);
