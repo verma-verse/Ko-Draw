@@ -11,16 +11,12 @@ function NavBar({ paintRef }) {
   const [shareOp, setShareOp] = useState(false);
   const [name, setName] = useState(null);
   const [dp, setDp] = useState(null);
-  const [tokenOp, showTokenOp] = useState(false)
+  const [tokenOp, setTokenOp] = useState(false)
 
   const showShareOptions = () => {
     setShareOp((f) => !f);
   };
 
-  const backtohome = () => {
-    console.log("event is fired")
-    navigate('/profile');
-  }
   useEffect(() => {
     const user = sessionStorage.getItem("firstName");
     const photo = sessionStorage.getItem("dp");
@@ -34,7 +30,7 @@ function NavBar({ paintRef }) {
           <input className="px-2 py-1 text-2xl font-bold text-blue-500 bg-white border-2 border-blue-600 rounded-md" type="text" placeholder="Enter token here" />
           <div className="flex justify-around mt-4">
             <button className="px-6 py-1 text-xl text-white bg-blue-500 rounded-md hover:bg-blue-700 ">Join</button>
-            <button className="px-3 py-1 text-xl text-white bg-blue-500 rounded-md hover:bg-blue-700" onClick={backtohome}>Cancel</button>
+            <button className="px-3 py-1 text-xl text-white bg-blue-500 rounded-md hover:bg-blue-700" onClick={() => setTokenOp(false)}>Cancel</button>
           </div>
         </div >
       </div>}
@@ -44,16 +40,17 @@ function NavBar({ paintRef }) {
             File
           </button>
           <div className="absolute z-40 hidden bg-gray-200 shadow-md group-hover:block min-w-32">
-            <a className="block px-4 py-3 text-black hover:bg-white" href="#">
+            <Link className="block px-4 py-3 text-black hover:bg-white" to="/">Home</Link>
+            <Link className="block px-4 py-3 text-black hover:bg-white" to="/board">
               New
-            </a>
+            </Link>
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Open
             </a>
             <a className="block px-4 py-3 text-black hover:bg-white" href="#">
               Save As
             </a>
-            <button onClick={() => showTokenOp(f => !f)} className="block px-4 py-3 text-black hover:bg-white">Join with token</button>
+            <button onClick={() => setTokenOp(true)} className="block px-4 py-3 text-black hover:bg-white">Join with token</button>
           </div>
         </div>
         <div className="relative inline-block ml-10 text-black group">
@@ -137,9 +134,9 @@ function NavBar({ paintRef }) {
           </div>
         </div>
       </div>
-      <div className="w-full text-center">
+      {name && <div className="w-full text-center">
         <input className="py-1 text-2xl text-center bg-gray-200" type="text" placeholder="Untitled" default="Untitled" />
-      </div>
+      </div>}
       {shareOp && <ShareOptions paintRef={paintRef} setShareOp={setShareOp} />}
       <div className="flex items-center justify-end w-full">
         {!name ? (
@@ -154,13 +151,13 @@ function NavBar({ paintRef }) {
             Share
           </div>
         )}
-        {dp ? (
+        {name && (dp ? (
           <UserImage toggle={toggle} setToggle={setToggle} data={dp} />
         ) : (
           <div onClick={() => setToggle(f => !f)} className="mr-10 text-3xl hover:cursor-pointer">
             <HiUserCircle />
           </div>
-        )}
+        ))}
         {toggle && <ProfileDialog />}
       </div>
     </div>

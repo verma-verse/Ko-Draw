@@ -12,14 +12,16 @@ app.use(function (req, res, next) {
 });
 
 //a map between paintId and roomId
-const mapping={}; //paintId:[roomId,count]
+const mapping = {}; //paintId:[roomId,count]
 io.on("connection", (socket) => {
-  if(socket.paintId && socket.userID && mapping[socket.paintId]){
-    socket.join(mapping[socket.paintId][0])
-    mapping[socket.paintId][1]=mapping[socket.paintId][1]+1;
+  // console.log(socket)
+  if (socket.handshake.auth.paintId && socket.userID && mapping[socket.handshake.auth.paintId]) {
+    mapping[socket.handshake.auth.paintId][1] = mapping[socket.handshake.auth.paintId][1] + 1;
   }
   else
-    mapping[socket.paintId]=[socket.id,0]
+    mapping[socket.handshake.auth.paintId] = [socket.id, 0]
+  console.log(mapping)
+  socket.join(mapping[socket.handshake.auth.paintId][0])
 
   const users = [];
   for (let [id, socket] of io.of("/").sockets) {
@@ -29,23 +31,22 @@ io.on("connection", (socket) => {
     });
   }
   socket.emit("users", users);  //emitting list of all connected users to the connected user
-
   // notify existing users
-  socket.broadcast.to(mapping[socket.paintId][0]).emit('user connected',{
+  socket.broadcast.to(mapping[socket.handshake.auth.paintId][0]).emit('user connected', {
     userID: socket.id,
   });
 
   socket.on("canvas-data", (data) => {
-    socket.broadcast.to(mapping[socket.paintId][0]).emit("canvas-data", data);
+    socket.broadcast.to(mapping[socket.handshake.auth.paintId][0]).emit("canvas-data", data);
   });
   socket.on("mouse", (data) => {
     // console.log(data);
-    socket.broadcast.to(mapping[socket.paintId][0]).emit("mouse", data);
+    socket.broadcast.to(mapping[socket.handshake.auth.paintId][0]).emit("mouse", data);
   });
   socket.on("disconnect", function () {
-    mapping[socket.paintId][1]=mapping[socket.paintId][1]-1;
-    if(mapping[socket.paintId][1]==0) delete mapping[socket.paintId]
-    socket.broadcast.to(mapping[socket.paintId][0]).emit("removeMouse", socket.id);
+    mapping[socket.handshake.auth.paintId][1] = mapping[socket.handshake.auth.paintId][1] - 1;
+    if (mapping[socket.handshake.auth.paintId][1] == 0) delete mapping[socket.handshake.auth.paintId]
+    socket.broadcast.to(mapping[socket.handshake.auth.paintId][0]).emit("removeMouse", socket.id);
   });
 });
 
