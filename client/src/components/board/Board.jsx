@@ -14,9 +14,16 @@ import {
   loadImage,
 } from "./DrawingShapes";
 
-const socket = io.connect("http://localhost:8080",{paintId:sessionStorage.getItem("paintId"),userId:sessionStorage.getItem("user")});
 let mouseSending = null;
-
+let socket = null
+const userId = sessionStorage.getItem("user")
+const paintId = sessionStorage.getItem("paintId")
+if (userId && paintId)
+  socket = io.connect("http://localhost:8080", {
+    auth: {
+      paintId, userId
+    },
+  });
 export default function Board({ properties, setProperties, paintRef }) {
   // const paintRef = useRef(null);
   const sketchRef = useRef(null);
@@ -27,6 +34,9 @@ export default function Board({ properties, setProperties, paintRef }) {
   const [index, setIndex] = useState(-1); //-1 indicates empty, -2 means last frame..
   const [userCursors, setUserCursors] = useState([]);
 
+  useEffect(() => {
+
+  }, [])
   useEffect(() => {
     //FIXME: handle dimensions (need to resize sketch too) when resizing...
     const resizeHandler = (e) => {
@@ -78,11 +88,13 @@ export default function Board({ properties, setProperties, paintRef }) {
     ctx.fillRect(0, 0, paintRef.current.width, paintRef.current.height);
     setIndex(-1);
     setDrawing([]);
-    const imgd = paintRef.current.toDataURL("image/png");
-    socket.emit("canvas-data", {
-      img: imgd,
-      id: socket.id,
-    });
+    if (socket) {
+      const imgd = paintRef.current.toDataURL("image/png");
+      socket.emit("canvas-data", {
+        img: imgd,
+        id: socket.id,
+      });
+    }
   };
   const undo = () => {
     if (index === -1) return;
@@ -110,6 +122,8 @@ export default function Board({ properties, setProperties, paintRef }) {
 
   /*Connect to socket and receive*/
   useEffect(() => {
+    const user = sessionStorage.getItem("user")
+    if (!user) return;
     socket.on("connect", () => {
       console.log("connected: " + socket.id);
     });
@@ -154,7 +168,7 @@ export default function Board({ properties, setProperties, paintRef }) {
         };
       }, 200);
     });
-    
+
     return () => {
       userCursors.forEach((val, idx) => {
         const el = document.getElementById(val);
@@ -205,12 +219,13 @@ export default function Board({ properties, setProperties, paintRef }) {
       const y = e.pageY - node.offsetTop;
       fillColor(node, x, y, properties.color);
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
-      const imgd = paintRef.current.toDataURL("image/png");
-      //for some reasons emitting imagedata not working..33% larger size :(
-      socket.emit("canvas-data", {
-        img: imgd,
-        id: socket.id,
-      });
+      if (socket) {
+        const imgd = paintRef.current.toDataURL("image/png");
+        socket.emit("canvas-data", {
+          img: imgd,
+          id: socket.id,
+        });
+      }
       const temp = drawing;
       if (index !== -2) {
         temp.splice(index + 1, drawing.length - index - 1);
@@ -267,11 +282,13 @@ export default function Board({ properties, setProperties, paintRef }) {
         );
         return;
       }
-      const imgd = paintRef.current.toDataURL("image/png");
-      socket.emit("canvas-data", {
-        img: imgd,
-        id: socket.id,
-      });
+      if (socket) {
+        const imgd = paintRef.current.toDataURL("image/png");
+        socket.emit("canvas-data", {
+          img: imgd,
+          id: socket.id,
+        });
+      }
       const imgdata = ctx.getImageData(0, 0, node.width, node.height);
       const temp = drawing;
       if (index !== -2) {
@@ -395,9 +412,10 @@ export default function Board({ properties, setProperties, paintRef }) {
     if (mouseSending) {
       clearInterval(mouseSending);
     }
-    mouseSending = setInterval(() => {
-      socket.emit("mouse", { mouse, id: socket.id, name: sessionStorage.getItem("name") || "anonymous" });
-    }, 100);
+    if (socket)
+      mouseSending = setInterval(() => {
+        socket.emit("mouse", { mouse, id: socket.id, name: sessionStorage.getItem("name") || "anonymous" });
+      }, 100);
 
     /*Cleanup function*/
     return () => {

@@ -6,6 +6,14 @@ const nodemailer = require('nodemailer')
 require("dotenv").config();
 const { EMAIL, PASSWORD } = process.env;
 
+router.get("/paint/:id", (req, res) => {
+    const id = req.params.id;
+    Paint.findById(id, (err, doc) => {
+        if (err)
+            return res.status(404).json({ success: false, message: "cannot get paint now" })
+        return res.json({ success: true, paintId: doc._id, imgString: doc.imgString, title: doc.title })
+    })
+})
 router.post("/add/:id", async (req, res) => {
     const id = req.params.id
     if (!req.body.imgString || !req.body.title)
@@ -30,7 +38,7 @@ router.post("/add/:id", async (req, res) => {
             relation.save((err, docq) => {
                 if (err)
                     return res.status(404).json({ success: false, message: "cannot save data" })
-                res.json({ success: true, message: "paint saved succssfully", paint: result.id ,title:result.title});
+                res.json({ success: true, message: "paint saved succssfully", paint: result.id, title: result.title });
             })
         })
 
@@ -50,23 +58,23 @@ router.delete("/:id", (req, res) => {
     })
 })
 
-router.post("/share",(req,res)=>{
-    const {addresses,paintId,title,owner}=req.body
+router.post("/share", (req, res) => {
+    const { addresses, paintId, title, owner } = req.body
     let transport = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: EMAIL,
-          pass: PASSWORD,
+            user: EMAIL,
+            pass: PASSWORD,
         },
-      });
+    });
     addresses.forEach(email => {
-        User.findOne({email:email},(err,user)=>{
-            if(!err){
-                Paintuser.findOne({user_id:user._id,paint_id:paintId},(err,result)=>{
-                    if(!result){
-                        new Paintuser({user_id:user._id,paint_id:paintId}).save((err,doc)=>{
-                            if(err)
-                                return res.status(404).json({success:false,message:"cannot invite user"})
+        User.findOne({ email: email }, (err, user) => {
+            if (!err) {
+                Paintuser.findOne({ user_id: user._id, paint_id: paintId }, (err, result) => {
+                    if (!result) {
+                        new Paintuser({ user_id: user._id, paint_id: paintId }).save((err, doc) => {
+                            if (err)
+                                return res.status(404).json({ success: false, message: "cannot invite user" })
                             transport.sendMail({
                                 from: EMAIL,
                                 to: email,
@@ -83,15 +91,15 @@ router.post("/share",(req,res)=>{
             }
         })
     });
-    res.json({success:true,message:"invited successfully"})
+    res.json({ success: true, message: "invited successfully" })
 })
 
-router.get("/contributors/:id",(req,res)=>{
-    const id=req.params.id;
-    Paintuser.find({paint_id:id},(err,doc)=>{
-        if(err)
-            return res.status(404).json({success:false,message:"no users found",users:[]})
-        res.json({success:true,users:doc})
+router.get("/contributors/:id", (req, res) => {
+    const id = req.params.id;
+    Paintuser.find({ paint_id: id }, (err, doc) => {
+        if (err)
+            return res.status(404).json({ success: false, message: "no users found", users: [] })
+        res.json({ success: true, users: doc })
     })
 })
 

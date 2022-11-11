@@ -3,7 +3,8 @@ import Toolbar from "../toolbar/Toolbar";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
-export default function Container({paintRef}) {
+import NavBar from "../Navbar/NavBar";
+export default function Container({ paintRef }) {
   const sizeRef = useRef(null);
   const [properties, setProperties] = useState({
     currentTool: "pencil",
@@ -25,13 +26,15 @@ export default function Container({paintRef}) {
     };
   });
   return (
-    <div className="fixed flex w-screen h-screen pt-12 bg-black" ref={sizeRef}>
-      <div className="z-20 h-auto mx-1 my-2 bg-white rounded-md w-fit">
-        <Toolbar properties={properties} setProperties={setProperties} />
+    <><NavBar />
+      <div className="fixed flex w-screen h-screen pt-12 bg-black" ref={sizeRef}>
+        <div className="z-20 h-auto mx-1 my-2 bg-white rounded-md w-fit">
+          <Toolbar properties={properties} setProperties={setProperties} />
+        </div>
+        <div className="z-20 w-full h-auto mx-1 my-2 rounded-md">
+          <Board properties={properties} setProperties={setProperties} paintRef={paintRef} />
+        </div>
       </div>
-      <div className="z-20 w-full h-auto mx-1 my-2 rounded-md">
-        <Board properties={properties} setProperties={setProperties} paintRef={paintRef}/>
-      </div>
-    </div>
+    </>
   );
 }

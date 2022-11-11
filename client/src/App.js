@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Signup from "./components/SignUp";
 import Login from "./components/Login";
 import Profile from "./components/profile/Profile";
+import HomePage from "./components/Homepage/HomePage";
 
 export default function App() {
   const [title, setTitle] = useState(null)
@@ -32,10 +33,11 @@ export default function App() {
     <div className="h-screen App ">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<><NavBar paintRef={paintRef} /><Container paintRef={paintRef} /></>}></Route>
+          <Route path="/" element={<HomePage />}></Route>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/board" element={<Container paintRef={paintRef} />}></Route>
         </Routes>
       </BrowserRouter>
     </div>
