@@ -10,11 +10,11 @@ MERN
 
 ### Team Members
 
-| Name          | Mobile     | Email                      |
-| :------------ | ---------- | -------------------------- |
-| Ashish Verama | 9795828234 | ashishkv.2016@gmailcom     |
-| Amit Kumar    | 9116260192 | amit9116260192@gmail.com   |
-| Priyanshu     | 7482903101 | priyanshuraj6649@gmail.com |
+| Name         | Mobile     | Email                      |
+| :----------- | ---------- | -------------------------- |
+| Ashish Verma | 9795828234 | ashishkv.2016@gmail.com    |
+| Amit Kumar   | 9116260192 | amit9116260192@gmail.com   |
+| Priyanshu    | 7482903101 | priyanshuraj6649@gmail.com |
 
 ### Features
 
